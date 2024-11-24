@@ -67,14 +67,14 @@ std::tuple<Vector, Vector, int> newton(
 
     Vector x = x0;
     double f0 = df(x0).norm();
-    Vector s = Vector::Constant(x.size(), std::numeric_limits<double>::infinity());
+    Vector s = Eigen::VectorXd::Constant(x.size(), std::numeric_limits<double>::infinity());
     double crit = std::numeric_limits<double>::infinity();
 
     int iter = 0;
     while (crit >= 1 && iter < maxiter)
     {
         // Update Jacobian and gradient
-        Eigen::MatrixXd jac = J(x);
+        Matrix jac = J(x);
         if (dt != 0)
         {
             jac += (1 / dt) * Eigen::MatrixXd::Identity(x.size(), x.size());

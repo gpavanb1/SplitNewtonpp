@@ -35,6 +35,44 @@ Matrix test_hess(const Vector &x)
     return result;
 }
 
+Vector rosen_func(const Vector &x)
+{
+    size_t n = x.size();
+    Vector result(n - 1);
+    for (size_t i = 0; i < n - 1; ++i)
+    {
+        result[i] = 100 * std::pow((x[i + 1] - x[i] * x[i]), 2) + std::pow((1 - x[i]), 2);
+    }
+    return result;
+};
+
+Vector rosen_der(const Vector &x)
+{
+    size_t n = x.size();
+    Vector result(n);
+    result.setZero();
+    for (size_t i = 0; i < n - 1; ++i)
+    {
+        result[i] += -400 * x[i] * (x[i + 1] - x[i] * x[i]) - 2 * (1 - x[i]);
+        result[i + 1] += 200 * (x[i + 1] - x[i] * x[i]);
+    }
+    return result;
+};
+
+Matrix rosen_hess(const Vector &x)
+{
+    size_t n = x.size();
+    Matrix result = Matrix::Zero(n, n);
+    for (size_t i = 0; i < n - 1; ++i)
+    {
+        result(i, i) += -400 * (x[i + 1] - 3 * x[i] * x[i]) + 2;
+        result(i, i + 1) += -400 * x[i];
+        result(i + 1, i) += -400 * x[i];
+        result(i + 1, i + 1) += 200;
+    }
+    return result;
+};
+
 // Function to set functions based on mode
 FunctionSet set_functions(
     const std::string &mode)
@@ -45,37 +83,19 @@ FunctionSet set_functions(
 
     if (mode == "ROSENBROCK")
     {
-        Func func = [](const Vector &x) -> Vector
-        {
-            Vector result(1);
-            result[0] = 100 * std::pow((x[1] - x[0] * x[0]), 2) + std::pow((1 - x[0]), 2);
-            return result;
-        };
-
-        auto der = [](const Vector &x) -> Vector
-        {
-            Vector result(2);
-            result[0] = -400 * x[0] * (x[1] - x[0] * x[0]) - 2 * (1 - x[0]);
-            result[1] = 200 * (x[1] - x[0] * x[0]);
-            return result;
-        };
-
-        auto hess = [](const Vector &x) -> Matrix
-        {
-            Matrix result(2, 2);
-            result(0, 0) = -400 * (x[1] - 3 * x[0] * x[0]) + 2;
-            result(0, 1) = -400 * x[0];
-            result(1, 0) = -400 * x[0];
-            result(1, 1) = 200;
-            return result;
-        };
-        return {func, der, hess};
+        func = rosen_func;
+        der = rosen_der;
+        hess = rosen_hess;
+        }
+    else if (mode == "TEST")
+    {
+        func = test_func;
+        der = test_der;
+        hess = test_hess;
     }
     else
     {
-        auto func = test_func;
-        auto der = test_der;
-        auto hess = test_hess;
-        return {func, der, hess};
+        throw std::invalid_argument("Invalid mode specified");
     }
+    return {func, der, hess};
 }

@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     Vector x0 = Eigen::VectorXd::LinSpaced(5000, 21.2, 31.2);
 
     // Mode selection
-    std::string mode = "TEST"; // or "ROSENBROCK"
+    std::string mode = "ROSENBROCK"; // or "TEST"
     auto [func, der, hess] = set_functions(mode);
 
     // Parameters
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     std::cout << "Starting Newton...\n";
 
     auto [xf_newton, step_newton, iter_newton] = newton(
-        der, hess, x0, std::numeric_limits<size_t>::max(), false, dt0, dtmax, false, std::nullopt, 0.8);
+        der, hess, x0, std::numeric_limits<int>::max(), true, dt0, dtmax, false, std::nullopt, 0.8);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration<double>(end - start).count();
