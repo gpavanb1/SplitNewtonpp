@@ -1,7 +1,7 @@
 #include <iostream>
-#include <vector>
 #include <cmath>
 #include <chrono>
+#include <optional>
 #include <string>
 #include <stdexcept>
 #include "typedefs.h"
@@ -30,37 +30,37 @@ int main(int argc, char *argv[])
     double dt0 = 0.0;
     double dtmax = 0.1;
 
-    // // Split Newton
-    // auto start = std::chrono::high_resolution_clock::now();
-    // std::cout << "Starting Split-Newton...\n";
+    // Split Newton
+    auto start = std::chrono::high_resolution_clock::now();
+    std::cout << "Starting Split-Newton...\n";
 
-    // auto [xf_split, step_split, iter_split] = split_newton(
-    //     der, hess, x0, x0.size() / 2, std::numeric_limits<size_t>::max(), false, dt0, dtmax, false, nullptr, 0.8);
+    auto [xf_split, step_split, iter_split] = split_newton(
+        der, hess, x0, x0.size() / 2, std::numeric_limits<int>::max(), true, dt0, dtmax, false, std::nullopt, 0.8);
 
-    // auto end = std::chrono::high_resolution_clock::now();
-    // double elapsed = std::chrono::duration<double>(end - start).count();
+    auto end = std::chrono::high_resolution_clock::now();
+    double elapsed = std::chrono::duration<double>(end - start).count();
 
-    // std::cout << "Final root (Split-Newton): ";
-    // for (size_t i = 0; i < std::min(xf_split.size(), size_t(10)); ++i)
-    //     std::cout << xf_split[i] << " ";
-    // std::cout << "...\n";
-    // std::cout << "Final Residual (Split-Newton): ";
-    // for (const auto &res : func(xf_split))
-    //     std::cout << res << " ";
-    // std::cout << "\nElapsed time: " << elapsed << " seconds\n";
-    // std::cout << "Total iterations: " << iter_split << "\n";
+    std::cout << "Final root (Split-Newton): ";
+    for (size_t i = 0; i < std::min(static_cast<size_t>(xf_split.size()), size_t(10)); ++i)
+        std::cout << xf_split[i] << " ";
+    std::cout << "...\n";
+    std::cout << "Final Residual (Split-Newton): ";
+    for (const auto &res : func(xf_split))
+        std::cout << res << " ";
+    std::cout << "\nElapsed time: " << elapsed << " seconds\n";
+    std::cout << "Total iterations: " << iter_split << "\n";
 
-    // std::cout << std::string(20, '-') << "\n";
+    std::cout << std::string(20, '-') << "\n";
 
     // Newton
-    auto start = std::chrono::high_resolution_clock::now();
+    start = std::chrono::high_resolution_clock::now();
     std::cout << "Starting Newton...\n";
 
     auto [xf_newton, step_newton, iter_newton] = newton(
         der, hess, x0, std::numeric_limits<int>::max(), true, dt0, dtmax, false, std::nullopt, 0.8);
 
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsed = std::chrono::duration<double>(end - start).count();
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = std::chrono::duration<double>(end - start).count();
 
     std::cout << "Final root (Newton): ";
     for (size_t i = 0; i < std::min(static_cast<size_t>(xf_newton.size()), size_t(10)); ++i)
