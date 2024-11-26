@@ -47,7 +47,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Run Executable",
+            "label": "CMake: Run Executable",
             "type": "shell",
             "command": "./build/main", // Replace with your built executable's name and path
             "group": {
@@ -58,18 +58,11 @@
         {
             "label": "CMake: Run Tests",
             "type": "shell",
-            "command": "ctest",
-            "args": [
-                "--output-on-failure"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}/build"
-            },
-            "problemMatcher": [],
+            "command": "./build/tests/test_main", // Replace with your built executable's name and path
             "group": {
                 "kind": "test",
-                "isDefault": false
+                "isDefault": true
             }
-        }
+        },
     ]
 }
