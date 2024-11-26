@@ -15,8 +15,10 @@ find_package(fmt CONFIG REQUIRED)
 add_executable(main main.cpp)
 
 # Include the src folder for the header-only library
-target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 # Link dependencies
 target_link_libraries(main PRIVATE fmt::fmt)
 
+# Add subdirectories
+add_subdirectory(tests)
