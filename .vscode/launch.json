@@ -7,6 +7,13 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/main",
             "cwd": "${workspaceFolder}",
+        },
+        {
+            "name": "Debug test main",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests/test_main",
+            "cwd": "${workspaceFolder}",
         }
     ]
 }
