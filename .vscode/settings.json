@@ -87,6 +87,11 @@
         "codecvt": "cpp",
         "expected": "cpp",
         "source_location": "cpp",
-        "sparse": "cpp"
+        "sparse": "cpp",
+        "any": "cpp",
+        "csignal": "cpp",
+        "span": "cpp",
+        "typeindex": "cpp",
+        "charconv": "cpp"
     }
 }
