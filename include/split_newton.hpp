@@ -1,10 +1,10 @@
 #include <Eigen/Dense>
 #include <spdlog/spdlog.h>
 #include <cmath>
-#include <limits>
-#include <stdexcept>
-#include <optional>
 #include <iostream>
+#include <limits>
+#include <optional>
+#include <stdexcept>
 #include <tuple>
 #include "typedefs.h"
 #include "newton.hpp"
@@ -65,6 +65,7 @@ std::tuple<Vector, Vector, int> split_newton(
         auto [new_xb, sb, local_iter_b] = newton(
             dfb, Jb, xb, maxiter, sparse, dt, dtmax, armijo, local_bounds, bound_fac);
         xb = new_xb;
+        spdlog::debug("B iterations: {}", local_iter_b);
 
         // A Cycle
         auto dfa = [&](const Vector &xa_local)
@@ -86,6 +87,7 @@ std::tuple<Vector, Vector, int> split_newton(
         auto [new_xa, sa, local_iter_a] = newton(
             dfa, Ja, xa, 1, sparse, dt, dtmax, armijo, local_bounds, bound_fac);
         xa = new_xa;
+        spdlog::debug("A iterations: {}", local_iter_a);
 
         // Construct new x and step
         Vector xnew = attach(xa, xb);
