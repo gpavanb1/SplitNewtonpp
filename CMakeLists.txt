@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Find packages
 find_package(fmt CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 # Add executable
 add_executable(main main.cpp)
@@ -19,6 +20,7 @@ target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 # Link dependencies
 target_link_libraries(main PRIVATE fmt::fmt)
+target_link_libraries(main PRIVATE spdlog::spdlog_header_only)
 
 # Add subdirectories
 add_subdirectory(tests)

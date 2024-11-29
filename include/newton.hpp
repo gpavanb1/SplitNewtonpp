@@ -3,10 +3,10 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include <spdlog/spdlog.h>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
-#include <iostream>
 #include <optional>
 #include "typedefs.h"
 
@@ -140,7 +140,7 @@ std::tuple<Vector, Vector, int> newton(
         crit = criterion(x, s);
         if (dt != 0)
         {
-            std::cout << "Timestep: " << dt << std::endl;
+            spdlog::trace("Timestep: " + std::to_string(dt));
         }
 
         // Update x

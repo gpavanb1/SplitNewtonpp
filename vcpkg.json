@@ -4,6 +4,7 @@
     "dependencies": [
         "eigen3",
         "fmt",
-        "gtest"
+        "gtest",
+        "spdlog"
     ]
 }

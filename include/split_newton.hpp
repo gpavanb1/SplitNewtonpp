@@ -1,4 +1,5 @@
 #include <Eigen/Dense>
+#include <spdlog/spdlog.h>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
@@ -92,7 +93,7 @@ std::tuple<Vector, Vector, int> split_newton(
 
         // Check convergence
         crit = criterion(x, s);
-        std::cout << "Iteration " << iter << ": Criterion = " << crit << std::endl;
+        spdlog::trace("Iteration " + std::to_string(iter) + ": Criterion = " + std::to_string(crit));
 
         // Update x
         x = xnew;
