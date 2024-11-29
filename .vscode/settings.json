@@ -86,6 +86,7 @@
         "cinttypes": "cpp",
         "codecvt": "cpp",
         "expected": "cpp",
-        "source_location": "cpp"
+        "source_location": "cpp",
+        "sparse": "cpp"
     }
 }
