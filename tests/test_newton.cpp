@@ -114,7 +114,7 @@ TEST(NewtonTest, RosenbrockConvergence)
     auto J = [](const Vector &x)
     { return rosen_hess(x); };
 
-    auto [x, s, iter] = newton(df, J, x0, 100, false, 0.1, 1.0);
+    auto [x, s, iter] = newton(df, J, x0, 100, false, 0.0, 1.0);
     ASSERT_TRUE(x.isApprox(Vector::Ones(x.size()), 1e-5));
 }
 
