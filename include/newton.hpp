@@ -91,7 +91,7 @@ std::tuple<Vector, Vector, int> newton(
             solver.compute(sp_jac);
             if (solver.info() != Eigen::Success)
             {
-                throw std::runtime_error("Sparse solver failed to decompose the matrix.");
+                spdlog::warn("Sparse solver failed to converge");
             }
             s = solver.solve(dfx);
         }
@@ -110,12 +110,15 @@ std::tuple<Vector, Vector, int> newton(
             {
                 fac = std::pow(2, -i);
                 Vector new_step = df(x + fac * s);
-                if (new_step.norm() <= (1 - alpha * fac) * fn)
+                const double new_step_norm = new_step.norm();
+                spdlog::debug("Armijo iteration: {} {} {}", fac, new_step_norm, fn);
+                if (new_step_norm <= (1 - alpha * fac) * fn)
                 {
                     break;
                 }
             }
             s *= fac;
+            spdlog::debug("Armijo scaling: {}", fac);
         }
 
         // Apply bounds
@@ -134,13 +137,17 @@ std::tuple<Vector, Vector, int> newton(
                 }
             }
             s *= best_scaling;
+
+            // Show damping factor if invoked (write in C++)
+            if (best_scaling != 1.0)
+                spdlog::info("Bounds hit. Damping factor: {}", best_scaling);
         }
 
         // Check convergence
         crit = criterion(x, s);
         if (dt != 0)
         {
-            spdlog::trace("Timestep: " + std::to_string(dt));
+            spdlog::info("Timestep: {}", dt);
         }
 
         // Update x
