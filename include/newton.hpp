@@ -14,13 +14,13 @@
 constexpr double EPS = std::numeric_limits<double>::epsilon();
 
 // Criterion Function
-double criterion(const Vector &x, const Vector &s, double abs = 1e-5, double rel = 1e-6)
+inline double criterion(const Vector &x, const Vector &s, double abs = 1e-5, double rel = 1e-6)
 {
     return (s.array() / (x.array() * rel + abs)).matrix().norm();
 }
 
 // Check if within bounds
-bool check_within_bounds(const Vector &x0, const Bounds &bounds = std::nullopt)
+inline bool check_within_bounds(const Vector &x0, const Bounds &bounds = std::nullopt)
 {
     if (!bounds)
     {
@@ -45,7 +45,7 @@ bool check_within_bounds(const Vector &x0, const Bounds &bounds = std::nullopt)
 }
 
 // Newton Method
-std::tuple<Vector, Vector, int> newton(
+inline std::tuple<Vector, Vector, int> newton(
     Gradient df, Jacobian J, Vector x0, int maxiter = std::numeric_limits<int>::max(),
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
     const Bounds &bounds = std::nullopt, double bound_fac = 0.8)
@@ -77,7 +77,7 @@ std::tuple<Vector, Vector, int> newton(
         Matrix jac = J(x);
         if (dt != 0)
         {
-            jac += (1 / dt) * Eigen::MatrixXd::Identity(x.size(), x.size());
+            jac += (1.0 / dt) * Eigen::MatrixXd::Identity(x.size(), x.size());
         }
 
         Vector dfx = df(x);
