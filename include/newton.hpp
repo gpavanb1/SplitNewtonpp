@@ -14,9 +14,12 @@
 constexpr double EPS = std::numeric_limits<double>::epsilon();
 
 // Criterion Function
-inline double criterion(const Vector &x, const Vector &s, double abs = 1e-5, double rel = 1e-6)
+inline double criterion(const Vector &x, const Vector &s, double fn, double abs = 1e-5, double rel = 1e-6)
 {
-    return (s.array() / (x.array() * rel + abs)).matrix().norm();
+    // Criterion based on scaled step size and gradient norm
+    double step_criterion = (s.array() / (x.array() * rel + abs)).matrix().norm();
+    double gradient_criterion = fn / (x.norm() * rel + abs);
+    return std::max(step_criterion, gradient_criterion);
 }
 
 // Check if within bounds
@@ -48,7 +51,7 @@ inline bool check_within_bounds(const Vector &x0, const Bounds &bounds = std::nu
 inline std::tuple<Vector, Vector, int> newton(
     Gradient df, Jacobian J, Vector x0, int maxiter = std::numeric_limits<int>::max(),
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
-    const Bounds &bounds = std::nullopt, double bound_fac = 0.8)
+    const Bounds &bounds = std::nullopt, double bound_fac = 0.8, bool suppress_gradient_check = false)
 {
 
     // Validate timestep
@@ -71,6 +74,8 @@ inline std::tuple<Vector, Vector, int> newton(
     double crit = std::numeric_limits<double>::infinity();
 
     int iter = 0;
+    Vector dfx;
+    double fn;
     while (crit >= 1 && iter < maxiter)
     {
         // Update Jacobian and gradient
@@ -80,8 +85,8 @@ inline std::tuple<Vector, Vector, int> newton(
             jac += (1.0 / dt) * Eigen::MatrixXd::Identity(x.size(), x.size());
         }
 
-        Vector dfx = df(x);
-        double fn = dfx.norm();
+        dfx = df(x);
+        fn = dfx.norm();
 
         // Solve for step direction
         if (sparse)
@@ -144,7 +149,7 @@ inline std::tuple<Vector, Vector, int> newton(
         }
 
         // Check convergence
-        crit = criterion(x, s);
+        crit = criterion(x, s, fn);
         if (dt != 0)
         {
             spdlog::info("Timestep: {}", dt);
@@ -157,6 +162,11 @@ inline std::tuple<Vector, Vector, int> newton(
         // Update timestep
         dt = std::min(dt0 * f0 / (fn + EPS), dtmax);
     }
+
+    // Warn if fn is large but converged
+    double gradient_criterion = fn / x.norm();
+    if (gradient_criterion > 1.0 && !suppress_gradient_check)
+        spdlog::warn("Gradient value is large but converged");
 
     return {x, s, iter};
 }

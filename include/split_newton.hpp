@@ -85,7 +85,7 @@ inline std::tuple<Vector, Vector, int> split_newton(
                               : std::nullopt;
 
         auto [new_xa, sa, local_iter_a] = newton(
-            dfa, Ja, xa, 1, sparse, dt, dtmax, armijo, local_bounds, bound_fac);
+            dfa, Ja, xa, 1, sparse, dt, dtmax, armijo, local_bounds, bound_fac, true);
         xa = new_xa;
         spdlog::debug("A iterations: {}", local_iter_a);
 
@@ -94,7 +94,8 @@ inline std::tuple<Vector, Vector, int> split_newton(
         s = xnew - x;
 
         // Check convergence
-        crit = criterion(x, s);
+        double fn = df(xnew).norm();
+        crit = criterion(x, s, fn);
         spdlog::trace("Iteration " + std::to_string(iter) + ": Criterion = " + std::to_string(crit));
 
         // Update x
