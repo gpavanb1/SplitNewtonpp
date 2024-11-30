@@ -13,7 +13,8 @@ TEST(CriterionTest, CalculatesCorrectly)
     Vector x(2), s(2);
     x << 1.0, 2.0;
     s << 0.1, 0.2;
-    double result = criterion(x, s);
+    double fn = 0.01;
+    double result = criterion(x, s, fn);
     double expected = (s.array() / (x.array() * 1e-6 + 1e-5)).matrix().norm();
     ASSERT_NEAR(result, expected, 1e-9);
 }
@@ -84,7 +85,7 @@ TEST(NewtonTest, SimpleConvergence)
     auto J = [](const Vector &x)
     { return Matrix::Identity(x.size(), x.size()); };
 
-    auto [x, step, iter] = newton(df, J, x0, 1, false, 2.0);
+    auto [x, step, iter] = newton(df, J, x0, 1, false, 2.0, 2.0, false, std::nullopt, 0.8, true);
     ASSERT_TRUE(step.isApprox(expected_step, 1e-5));
 }
 
@@ -146,6 +147,6 @@ TEST(NewtonTest, ArmijoRule)
     auto J = [](const Vector &x)
     { return Matrix::Identity(x.size(), x.size()); };
 
-    auto [x, step, iter] = newton(df, J, x0, 1, false, 0.1, 1.0, true);
+    auto [x, step, iter] = newton(df, J, x0, 1, false, 0.1, 1.0, true, std::nullopt, 0.8, true);
     ASSERT_LT(step.norm(), 1.0); // Armijo scaling should reduce the step size
 }
