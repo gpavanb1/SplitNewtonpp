@@ -21,7 +21,7 @@ inline Vector attach(const Vector &x, const Vector &y)
 inline std::tuple<Vector, Vector, int> split_newton(
     Gradient df, Jacobian J, const Vector &x0, int loc, int maxiter = std::numeric_limits<int>::max(),
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
-    const Bounds &bounds = std::nullopt, double bound_fac = 0.8)
+    const Bounds &bounds = std::nullopt, double bound_fac = 0.8, int jacobian_age = 5)
 {
     if (dt0 < 0 || dtmax < 0)
     {
@@ -63,7 +63,7 @@ inline std::tuple<Vector, Vector, int> split_newton(
                                      : std::nullopt;
 
         auto [new_xb, sb, local_iter_b] = newton(
-            dfb, Jb, xb, maxiter, sparse, dt, dtmax, armijo, local_bounds, bound_fac);
+            dfb, Jb, xb, maxiter, sparse, dt, dtmax, armijo, local_bounds, bound_fac, false, jacobian_age);
         xb = new_xb;
         spdlog::debug("B iterations: {}", local_iter_b);
 
@@ -85,7 +85,7 @@ inline std::tuple<Vector, Vector, int> split_newton(
                               : std::nullopt;
 
         auto [new_xa, sa, local_iter_a] = newton(
-            dfa, Ja, xa, 1, sparse, dt, dtmax, armijo, local_bounds, bound_fac, true);
+            dfa, Ja, xa, 1, sparse, dt, dtmax, armijo, local_bounds, bound_fac, true, jacobian_age);
         xa = new_xa;
         spdlog::debug("A iterations: {}", local_iter_a);
 
