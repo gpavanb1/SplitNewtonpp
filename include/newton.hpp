@@ -51,10 +51,9 @@ inline bool check_within_bounds(const Vector &x0, const Bounds &bounds = std::nu
 inline std::tuple<Vector, Vector, int> newton(
     Gradient df, Jacobian J, Vector x0, int maxiter = std::numeric_limits<int>::max(),
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
-    const Bounds &bounds = std::nullopt, double bound_fac = 0.8, bool suppress_gradient_check = false)
+    const Bounds &bounds = std::nullopt, double bound_fac = 0.8,
+    bool suppress_gradient_check = false, int jacobian_age = 5)
 {
-
-    // Validate timestep
     if (dt0 < 0 || dtmax < 0)
     {
         throw std::invalid_argument("Must specify positive dt0 and dtmax.");
@@ -74,15 +73,37 @@ inline std::tuple<Vector, Vector, int> newton(
     double crit = std::numeric_limits<double>::infinity();
 
     int iter = 0;
+    int jacobian_iter = 0; // Counter to track Jacobian age
     Vector dfx;
+    Matrix jac; // Store the Jacobian matrix
     double fn;
+
+    // Define sparse solver outside the loop to reuse it
+    Eigen::SparseLU<Eigen::SparseMatrix<double>> sparse_solver;
+
     while (crit >= 1 && iter < maxiter)
     {
-        // Update Jacobian and gradient
-        Matrix jac = J(x);
-        if (dt != 0)
+        // Update Jacobian and sparse solver only as needed
+        if (jacobian_iter == 0 || jacobian_iter >= jacobian_age)
         {
-            jac += (1.0 / dt) * Eigen::MatrixXd::Identity(x.size(), x.size());
+            spdlog::debug("Recomputing Jacobian at iteration {}", iter);
+            jac = J(x);
+            if (dt != 0)
+            {
+                jac += (1.0 / dt) * Eigen::MatrixXd::Identity(x.size(), x.size());
+            }
+
+            if (sparse)
+            {
+                Eigen::SparseMatrix<double> sp_jac = jac.sparseView();
+                sparse_solver.compute(sp_jac);
+                if (sparse_solver.info() != Eigen::Success)
+                {
+                    throw std::runtime_error("Sparse solver factorization failed");
+                }
+            }
+
+            jacobian_iter = 0; // Reset counter
         }
 
         dfx = df(x);
@@ -91,14 +112,11 @@ inline std::tuple<Vector, Vector, int> newton(
         // Solve for step direction
         if (sparse)
         {
-            Eigen::SparseMatrix<double> sp_jac = jac.sparseView();
-            Eigen::SparseLU<Eigen::SparseMatrix<double>> solver;
-            solver.compute(sp_jac);
-            if (solver.info() != Eigen::Success)
+            s = sparse_solver.solve(dfx);
+            if (sparse_solver.info() != Eigen::Success)
             {
-                spdlog::warn("Sparse solver failed to converge");
+                throw std::runtime_error("Sparse solver failed to solve");
             }
-            s = solver.solve(dfx);
         }
         else
         {
@@ -143,13 +161,13 @@ inline std::tuple<Vector, Vector, int> newton(
             }
             s *= best_scaling;
 
-            // Show damping factor if invoked (write in C++)
             if (best_scaling != 1.0)
                 spdlog::info("Bounds hit. Damping factor: {}", best_scaling);
         }
 
         // Check convergence
         crit = criterion(x, s, fn);
+        spdlog::trace("Iteration " + std::to_string(iter) + ": Criterion = " + std::to_string(crit));
         if (dt != 0)
         {
             spdlog::info("Timestep: {}", dt);
@@ -158,6 +176,9 @@ inline std::tuple<Vector, Vector, int> newton(
         // Update x
         x += s;
         ++iter;
+
+        // Update Jacobian age counter
+        ++jacobian_iter;
 
         // Update timestep
         dt = std::min(dt0 * f0 / (fn + EPS), dtmax);
