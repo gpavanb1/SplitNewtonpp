@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     spdlog::info("Starting Split-Newton...\n");
 
     auto [xf_split, step_split, iter_split] = split_newton(
-        der, hess, x0, x0.size() / 2, std::numeric_limits<int>::max(), true, dt0, dtmax, false, std::nullopt, 0.8);
+        der, hess, x0, x0.size() / 2, std::numeric_limits<int>::max(), true, dt0, dtmax, false, std::nullopt, 0.8, 1);
 
     auto end = std::chrono::high_resolution_clock::now();
     double elapsed = std::chrono::duration<double>(end - start).count();
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     spdlog::info("Starting Newton...\n");
 
     auto [xf_newton, step_newton, iter_newton] = newton(
-        der, hess, x0, std::numeric_limits<int>::max(), true, dt0, dtmax, false, std::nullopt, 0.8);
+        der, hess, x0, std::numeric_limits<int>::max(), true, dt0, dtmax, false, std::nullopt, 0.8, false, 1);
 
     end = std::chrono::high_resolution_clock::now();
     elapsed = std::chrono::duration<double>(end - start).count();
