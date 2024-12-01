@@ -25,6 +25,8 @@ The system is divided into two and for ease of communication, let's refer to fir
 
 ## How to install and execute?
 
+This is a header-only library and can be most easily used with VSCode. The `tasks.json` contains the build and run commands that can be invoked directly from the IDE.
+
 There is an example in `main.cpp` which can be compiled and executed
 
 ## How much faster is this?
