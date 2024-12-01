@@ -54,6 +54,42 @@ inline std::tuple<Vector, Vector, int> newton(
     const Bounds &bounds = std::nullopt, double bound_fac = 0.8,
     bool suppress_gradient_check = false, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
 {
+
+    /**
+     * @brief Applies the Newton method to solve for a root of a function.
+     *
+     * This function iterates the Newton method to find the root of a nonlinear equation
+     * given the gradient and Jacobian. The method includes various options to control
+     * the iteration process.
+     *
+     * @param df A function representing the gradient of the objective function.
+     * @param J A function representing the Jacobian of the objective function.
+     * @param x0 The initial guess for the root.
+     * @param maxiter The maximum number of iterations (default is
+     *        `std::numeric_limits<int>::max()`).
+     * @param sparse Whether to use sparse matrices for the Jacobian (default is `false`).
+     * @param dt0 Initial step size (default is `0.0`).
+     * @param dtmax Maximum allowable step size (default is `1.0`).
+     * @param armijo Whether to use the Armijo rule for step size selection (default
+     *        is `false`).
+     * @param bounds Optional bounds for the solution, represented by a `Bounds`
+     *        object - `std::pair` of `Vector` (default is `std::nullopt`).
+     * @param bound_fac Factor for damping the step size on hitting bounds during the
+     *        iterations (default is `0.8`).
+     * @param suppress_gradient_check Whether to suppress the gradient norm check -
+     *        used in Split Newton to avoid checking as only 1 iteration is done in
+     *        A-Cycle (default is `false`).
+     * @param jacobian_age Number of iterations after which the Jacobian is updated
+     *        (default is `5`).
+     * @param abs Absolute tolerance for convergence (default is `1e-5`).
+     * @param rel Relative tolerance for convergence (default is `1e-6`).
+     *
+     * @return A tuple containing:
+     *         - The computed solution vector.
+     *         - The computed gradient at the solution.
+     *         - The number of iterations performed.
+     */
+
     if (dt0 < 0 || dtmax < 0)
     {
         throw std::invalid_argument("Must specify positive dt0 and dtmax.");

@@ -26,6 +26,38 @@ std::tuple<Vector, Vector, int> split_newton(
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
     const Bounds &bounds = std::nullopt, double bound_fac = 0.8, int jacobian_age = 5)
 {
+
+    /**
+     * @brief Applies the Split Newton method to solve for a root of a function.
+     *
+     * This function uses the Split Newton method to find the root of a nonlinear equation
+     * given the gradient and Jacobian. It provides several options to control the iteration
+     * process, such as step size, maximum iterations, and boundary conditions.
+     *
+     * @param df A function representing the gradient of the objective function.
+     * @param J A function representing the Jacobian of the objective function.
+     * @param x0 The initial guess for the root.
+     * @param loc The location or index where the vector/system is being split.
+     * @param maxiter The maximum number of iterations (default is
+     *        `std::numeric_limits<int>::max()`).
+     * @param sparse Whether to use sparse matrices for the Jacobian (default is `false`).
+     * @param dt0 Initial step size (default is `0.0`).
+     * @param dtmax Maximum allowable step size (default is `1.0`).
+     * @param armijo Whether to use the Armijo rule for step size selection (default
+     *        is `false`).
+     * @param bounds Optional bounds for the solution, represented by a `Bounds`
+     *        object - `std::pair` of `Vector` (default is `std::nullopt`).
+     * @param bound_fac Factor for damping the step size on hitting bounds during the
+     *        iterations (default is `0.8`).
+     * @param jacobian_age Number of iterations after which the Jacobian is updated
+     *        (default is `5`).
+     *
+     * @return A tuple containing:
+     *         - The computed solution vector.
+     *         - The computed gradient at the solution.
+     *         - The number of iterations performed.
+     */
+
     if (dt0 < 0 || dtmax < 0)
     {
         throw std::invalid_argument("Must specify positive dt0 and dtmax");
