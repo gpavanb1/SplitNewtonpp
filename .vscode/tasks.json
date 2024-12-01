@@ -11,7 +11,7 @@
                 "-B",
                 "build",
                 "-DCMAKE_TOOLCHAIN_FILE=/Users/apple/Desktop/Projects/vcpkg/scripts/buildsystems/vcpkg.cmake",
-                "-DCMAKE_BUILD_TYPE=Debug"
+                "-DCMAKE_BUILD_TYPE=Release"
             ],
             "problemMatcher": [],
             "group": {
@@ -64,5 +64,20 @@
                 "isDefault": true
             }
         },
+        {
+            "label": "Generate Coverage Report",
+            "type": "shell",
+            "dependsOn": "CMake: Run Tests",
+            "command": "bash",
+            "args": [
+                "-c",
+                "llvm-profdata merge -sparse default.profraw -o default.profdata && llvm-cov show ./build/tests/test_main -instr-profile=default.profdata -format=html -output-dir=coverage"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": []
+        }
     ]
 }
