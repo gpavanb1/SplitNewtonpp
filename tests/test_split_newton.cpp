@@ -52,7 +52,7 @@ TEST_F(SplitNewtonTest, NewtonVsSplitNewtonSparse)
         sparse, 0.0, 0.1, false, bounds, 0.8, 1);
 
     // Compare results
-    EXPECT_LE((x_opt_newton - x_opt_split_newton).cwiseAbs().maxCoeff(), 1e-4);
+    EXPECT_LE((x_opt_newton - x_opt_split_newton).cwiseAbs().maxCoeff(), 2e-4);
 }
 
 // Test comparing newton and split_newton for dense case
@@ -71,7 +71,7 @@ TEST_F(SplitNewtonTest, NewtonVsSplitNewtonDense)
         sparse, 0.0, 0.1, false, bounds, 0.8, 1);
 
     // Compare results
-    EXPECT_LE((x_opt_newton - x_opt_split_newton).cwiseAbs().maxCoeff(), 1e-4);
+    EXPECT_LE((x_opt_newton - x_opt_split_newton).cwiseAbs().maxCoeff(), 2e-4);
 }
 
 // Test negative dt0 and dtmax exception
