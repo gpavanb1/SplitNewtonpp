@@ -52,7 +52,7 @@ inline std::tuple<Vector, Vector, int> newton(
     Gradient df, Jacobian J, Vector x0, int maxiter = std::numeric_limits<int>::max(),
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
     const Bounds &bounds = std::nullopt, double bound_fac = 0.8,
-    bool suppress_gradient_check = false, int jacobian_age = 5)
+    bool suppress_gradient_check = false, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
 {
     if (dt0 < 0 || dtmax < 0)
     {
@@ -185,7 +185,7 @@ inline std::tuple<Vector, Vector, int> newton(
     }
 
     // Warn if fn is large but converged
-    double gradient_criterion = fn / x.norm();
+    double gradient_criterion = fn / (x.norm() * rel + abs);
     if (gradient_criterion > 1.0 && !suppress_gradient_check)
         spdlog::warn("Gradient value is large but converged");
 
