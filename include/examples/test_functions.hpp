@@ -6,36 +6,66 @@
 #include <functional>
 #include <string>
 #include "typedefs.h"
+// Constants
+constexpr double lambda_a = 6.0;
+constexpr double lambda_b = 2.0;
+constexpr double lambda_c = -1.0;
+constexpr double lambda_d = -4.0;
 
-// Test functions (equivalent to `demo_func.py`)
-inline Vector test_func(const Vector &x)
+// Helper function for creating log-spaced vectors
+inline Vector logspace(double start, double end, int num)
 {
-    Vector result(x.size());
-    for (int i = 0; i < x.size(); ++i)
+    Vector result(num);
+    for (int i = 0; i < num; ++i)
     {
-        result[i] = std::sin(x[i]) - 0.5 * x[i]; // Example test function
+        result[i] = std::pow(10, start + (end - start) * i / (num - 1));
     }
     return result;
 }
 
-inline Vector test_der(const Vector &x)
+// Helper function for common initialization
+inline std::pair<Vector, Vector> common_init(const Vector &x0)
 {
-    Vector result(x.size());
-    for (int i = 0; i < x.size(); ++i)
-    {
-        result[i] = std::cos(x[i]) - 0.5; // Derivative of the test function
-    }
-    return result;
+    int la = x0.size() / 2;
+    int lb = x0.size() - la;
+
+    // Generate the `a` and `b` coefficients using logspace
+    Vector a = logspace(lambda_a, lambda_b, la);
+    Vector b = logspace(lambda_c, lambda_d, lb);
+
+    return {a, b};
 }
 
-inline Matrix test_hess(const Vector &x)
+// Test function: computes f(x0)
+inline Vector test_func(const Vector &x0)
 {
-    Matrix result = Eigen::MatrixXd::Zero(x.size(), x.size());
-    for (int i = 0; i < x.size(); ++i)
-    {
-        result(i, i) = -std::sin(x[i]); // Diagonal Hessian
-    }
-    return result;
+    auto [a, b] = common_init(x0);
+    Vector coeff(a.size() + b.size());
+    coeff << a, b; // Concatenate `a` and `b`
+
+    return 0.25 * (coeff.array() * x0.array().pow(4));
+}
+
+// Gradient of the test function: computes f'(x0)
+inline Vector test_der(const Vector &x0)
+{
+    auto [a, b] = common_init(x0);
+    Vector coeff(a.size() + b.size());
+    coeff << a, b; // Concatenate `a` and `b`
+
+    return coeff.array() * x0.array().pow(3);
+}
+
+// Hessian of the test function: computes f''(x0)
+inline Matrix test_hess(const Vector &x0)
+{
+    auto [a, b] = common_init(x0);
+    Vector coeff(a.size() + b.size());
+    coeff << a, b; // Concatenate `a` and `b`
+
+    Vector diagonal = 3.0 * coeff.array() * x0.array().pow(2);
+
+    return diagonal.asDiagonal();
 }
 
 inline Vector rosen_func(const Vector &x)
