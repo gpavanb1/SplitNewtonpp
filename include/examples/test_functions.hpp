@@ -1,3 +1,6 @@
+#ifndef TEST_FUNCTIONS_HPP
+#define TEST_FUNCTIONS_HPP
+
 #include <Eigen/Dense>
 #include <cmath>
 #include <functional>
@@ -5,7 +8,7 @@
 #include "typedefs.h"
 
 // Test functions (equivalent to `demo_func.py`)
-Vector test_func(const Vector &x)
+inline Vector test_func(const Vector &x)
 {
     Vector result(x.size());
     for (int i = 0; i < x.size(); ++i)
@@ -15,7 +18,7 @@ Vector test_func(const Vector &x)
     return result;
 }
 
-Vector test_der(const Vector &x)
+inline Vector test_der(const Vector &x)
 {
     Vector result(x.size());
     for (int i = 0; i < x.size(); ++i)
@@ -25,7 +28,7 @@ Vector test_der(const Vector &x)
     return result;
 }
 
-Matrix test_hess(const Vector &x)
+inline Matrix test_hess(const Vector &x)
 {
     Matrix result = Eigen::MatrixXd::Zero(x.size(), x.size());
     for (int i = 0; i < x.size(); ++i)
@@ -35,7 +38,7 @@ Matrix test_hess(const Vector &x)
     return result;
 }
 
-Vector rosen_func(const Vector &x)
+inline Vector rosen_func(const Vector &x)
 {
     size_t n = x.size();
     Vector result(n - 1);
@@ -46,7 +49,7 @@ Vector rosen_func(const Vector &x)
     return result;
 };
 
-Vector rosen_der(const Vector &x)
+inline Vector rosen_der(const Vector &x)
 {
     size_t n = x.size();
     Vector result(n);
@@ -59,7 +62,7 @@ Vector rosen_der(const Vector &x)
     return result;
 };
 
-Matrix rosen_hess(const Vector &x)
+inline Matrix rosen_hess(const Vector &x)
 {
     size_t n = x.size();
     Matrix result = Matrix::Zero(n, n);
@@ -74,7 +77,7 @@ Matrix rosen_hess(const Vector &x)
 };
 
 // Function to set functions based on mode
-FunctionSet set_functions(
+inline FunctionSet set_functions(
     const std::string &mode)
 {
     Func func;
@@ -86,7 +89,7 @@ FunctionSet set_functions(
         func = rosen_func;
         der = rosen_der;
         hess = rosen_hess;
-        }
+    }
     else if (mode == "TEST")
     {
         func = test_func;
@@ -99,3 +102,5 @@ FunctionSet set_functions(
     }
     return {func, der, hess};
 }
+
+#endif // TEST_FUNCTIONS_HPP

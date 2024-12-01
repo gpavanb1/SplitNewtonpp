@@ -192,4 +192,4 @@ inline std::tuple<Vector, Vector, int> newton(
     return {x, s, iter};
 }
 
-#endif // SPLITNEWTON_HPP
+#endif // NEWTON_HPP
