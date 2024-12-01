@@ -59,6 +59,9 @@
             "label": "CMake: Run Tests",
             "type": "shell",
             "command": "./build/tests/test_main", // Replace with your built executable's name and path
+            "env": {
+                "LLVM_PROFILE_FILE": "default.profraw"
+            },
             "group": {
                 "kind": "test",
                 "isDefault": true

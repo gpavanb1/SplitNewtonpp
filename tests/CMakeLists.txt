@@ -2,8 +2,8 @@
 file(GLOB TEST_SOURCES *.cpp)
 
 # Set flags for coverage
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 --coverage")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-instr-generate -fcoverage-mapping")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-instr-generate -fcoverage-mapping")
 
 # Find GTest
 find_package(GTest CONFIG REQUIRED)
