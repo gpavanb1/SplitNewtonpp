@@ -27,43 +27,14 @@ The system is divided into two and for ease of communication, let's refer to fir
 
 There is an example in `main.cpp` which can be compiled and executed
 
-## How good is this?
-
-Consider the test problem
-
-$\lambda_{a} = 10^{6}$, 
-$\lambda_{b} = 10^{2}$
-
-and the second system
-$\lambda_{c} = 10^{-1}$
-$\lambda_{d} = 10^{-4}$
-
-and using `logspace` for variation in $\lambda_{i}$
-
-
-$$ F(u) = \lambda_{a} u^{4}_{1} + ... + \lambda_{b} u^{4}_{\lfloor N/2 \rfloor} + \lambda_{c} u^{4}_{\lceil N/2 \rceil} + ... + \lambda_{d} u^{4}_{N}$$
-
-$$
-J(u) = 3 * \begin{bmatrix}
-\lambda_a & \dots & 0 & 0 & \dots & 0 \newline
-\vdots & \ddots & \vdots & \vdots & \ddots & \vdots \newline
-0 & \dots & \lambda_b & 0 & \dots & 0 \newline
-0 & \dots & 0 & \lambda_c & \dots & 0 \newline
-\vdots & \ddots & \vdots & \vdots & \ddots & \vdots \newline
-0 & \dots & 0 & 0 & \dots & \lambda_d
-\end{bmatrix} u^{2}
-$$
-
-For N=5000 (with no backtracking and pseudo-transient continuation), 
-
-| Method    | Time       | Iterations    |
-|-----------|------------|---------------|
-| Split Newton    |    XX seconds |  45   |
-| Newton |  XX  | NA  |
-
 ## How much faster is this?
 
-For the benchmark problem, the C++ version is ~20x faster than the Python version
+For the bounded Rosenbrock problem with N=5000, the C++ version is almost 2.5x faster (even though the sparse linear solver is in C for the Python version). The comparison is as follows
+
+| Method    | Time       | Iterations    | Time/Iteration |
+|-----------|------------|---------------| -------------- |
+C++ |  ~14 seconds  | 21  | ~0.6 seconds |
+Python | ~23 seconds | 15  | ~1.5 seconds |
 
 ## How to test?
 You can run tests with the `gtest` framework. There is a `CMake: Run Tests` task in `.vscode/tasks.json` which can be used to run the tests.
@@ -74,5 +45,3 @@ The coverage reports can be generated with `llvm-cov` or `gcov` depending on the
 
 Please direct your queries to [gpavanb1](http://github.com/gpavanb1)
 for any questions.
-
-## Citing
