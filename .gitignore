@@ -1,3 +1,5 @@
 build
 vcpkg_installed
 .DS_Store
+coverage
+default.*

@@ -1,5 +1,7 @@
 # SplitNewton++
 
+![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen.svg)
+
 Fast, Bounded, Split [Newton](https://en.wikipedia.org/wiki/Newton%27s_method) with [pseudo-transient continuation
 ](https://ctk.math.ncsu.edu/TALKS/Purdue.pdf) and [backtracking](https://en.wikipedia.org/wiki/Backtracking_line_search)
 
