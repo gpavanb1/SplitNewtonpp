@@ -1,6 +1,9 @@
 {
-    "name": "splitnewton",
+    "name": "splitnewtonpp",
     "version": "0.0.1",
+    "description": "Fast, Bounded, Split Newton solver with pseudo-transient continuation and backtracking. ",
+    "license": "MIT",
+    "homepage": "https://github.com/gpavanb1/SplitNewtonpp",
     "dependencies": [
         "eigen3",
         "fmt",
