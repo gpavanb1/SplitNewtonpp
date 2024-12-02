@@ -1,6 +1,7 @@
 # SplitNewton++
 
 ![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen.svg)
+![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.14260555.svg)
 
 Fast, Bounded, Split [Newton](https://en.wikipedia.org/wiki/Newton%27s_method) with [pseudo-transient continuation
 ](https://ctk.math.ncsu.edu/TALKS/Purdue.pdf) and [backtracking](https://en.wikipedia.org/wiki/Backtracking_line_search)
@@ -49,3 +50,19 @@ The coverage reports can be generated with `llvm-cov` or `gcov` depending on the
 
 Please direct your queries to [gpavanb1](http://github.com/gpavanb1)
 for any questions.
+
+## Citing
+
+If you are using SplitNewton++ in any scientific work, please make sure to cite as follows
+```
+@software{pavan_b_govindaraju_2024_14260555,
+  author       = {Pavan B Govindaraju},
+  title        = {gpavanb1/SplitNewtonpp: 0.0.1},
+  month        = dec,
+  year         = 2024,
+  publisher    = {Zenodo},
+  version      = {0.0.1},
+  doi          = {10.5281/zenodo.14260555},
+  url          = {https://doi.org/10.5281/zenodo.14260555}
+}
+```
