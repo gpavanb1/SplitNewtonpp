@@ -8,19 +8,32 @@ set(CMAKE_TOOLCHAIN_FILE "/Users/apple/Desktop/Projects/vcpkg/scripts/buildsyste
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Find packages
+# Define the header-only library target
+add_library(SplitNewton INTERFACE)
+target_include_directories(SplitNewton INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+# Find external dependencies
 find_package(fmt CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
-# Add executable
-add_executable(main main.cpp)
+# Link external dependencies to the header-only library
+target_link_libraries(SplitNewton INTERFACE fmt::fmt spdlog::spdlog_header_only)
 
-# Include the src folder for the header-only library
-target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/include)
+# Add installation rules for headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include)
 
-# Link dependencies
-target_link_libraries(main PRIVATE fmt::fmt)
-target_link_libraries(main PRIVATE spdlog::spdlog_header_only)
+# Export the library for downstream projects
+install(TARGETS SplitNewton EXPORT SplitNewtonTargets)
 
-# Add subdirectories
+# Install the CMake configuration files
+install(EXPORT SplitNewtonTargets
+    FILE SplitNewtonConfig.cmake
+    NAMESPACE SplitNewton::
+    DESTINATION lib/cmake/SplitNewton
+)
+
+# Add subdirectory for tests (if tests exist, optional)
 add_subdirectory(tests)
