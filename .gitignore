@@ -1,5 +1,4 @@
-build
-vcpkg_installed
 .DS_Store
 coverage
-default.*
+bazel-*
+*.bazel.lock
