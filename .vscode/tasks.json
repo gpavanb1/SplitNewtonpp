@@ -2,16 +2,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "CMake: Configure",
+            "label": "Bazel: Build",
             "type": "shell",
-            "command": "cmake",
+            "command": "bazel",
             "args": [
-                "-S",
-                ".",
-                "-B",
                 "build",
-                "-DCMAKE_TOOLCHAIN_FILE=/Users/apple/Desktop/Projects/vcpkg/scripts/buildsystems/vcpkg.cmake",
-                "-DCMAKE_BUILD_TYPE=Release"
+                "//:main", // Replace with your target if different
+                "--compilation_mode=opt"
             ],
             "problemMatcher": [],
             "group": {
@@ -20,67 +17,41 @@
             }
         },
         {
-            "label": "CMake: Build",
+            "label": "Bazel: Test",
             "type": "shell",
-            "command": "cmake",
+            "command": "bazel",
             "args": [
-                "--build",
-                "build"
+                "test",
+                "//tests:splitnewton_tests", // Replace with your test target if different
+                "--compilation_mode=dbg"
             ],
             "problemMatcher": [],
             "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "dependsOn": "CMake: Configure"
+                "kind": "test",
+                "isDefault": true
+            }
         },
         {
-            "label": "CMake: Clean",
+            "label": "Bazel: Clean",
             "type": "shell",
-            "command": "cmake",
+            "command": "bazel",
             "args": [
-                "--build",
-                "build",
-                "--target",
                 "clean"
             ],
-            "problemMatcher": []
-        },
-        {
-            "label": "CMake: Run Executable",
-            "type": "shell",
-            "command": "./build/main", // Replace with your built executable's name and path
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "CMake: Run Tests",
-            "type": "shell",
-            "command": "./build/tests/test_main", // Replace with your built executable's name and path
-            "env": {
-                "LLVM_PROFILE_FILE": "default.profraw"
-            },
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Generate Coverage Report",
-            "type": "shell",
-            "dependsOn": "CMake: Run Tests",
-            "command": "bash",
-            "args": [
-                "-c",
-                "llvm-profdata merge -sparse default.profraw -o default.profdata && llvm-cov show ./build/tests/test_main -instr-profile=default.profdata -format=html -output-dir=coverage"
-            ],
+            "problemMatcher": [],
             "group": {
                 "kind": "build",
                 "isDefault": false
-            },
-            "problemMatcher": []
-        }
+            }
+        },
+        {
+            "label": "Bazel: Run Executable",
+            "type": "shell",
+            "command": "./bazel-bin/main", // Adjust based on your target path
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
     ]
 }
