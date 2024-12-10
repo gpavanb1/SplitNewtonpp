@@ -42,7 +42,7 @@ C++ |  ~14 seconds  | 21  | ~0.6 seconds |
 Python | ~23 seconds | 15  | ~1.5 seconds |
 
 ## How to test?
-You can run tests with the `gtest` framework. There is a `CMake: Run Tests` task in `.vscode/tasks.json` which can be used to run the tests.
+You can run tests with the `gtest` framework. There is a `Bazel: Test` task in `.vscode/tasks.json` which can be used to run the tests.
 
 The coverage reports can be generated with `llvm-cov` or `gcov` depending on the OS being used
 
