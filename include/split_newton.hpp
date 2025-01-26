@@ -13,7 +13,7 @@
 #include "newton.hpp"
 
 // Function to attach two vectors
-Vector attach(const Vector &x, const Vector &y)
+inline Vector attach(const Vector &x, const Vector &y)
 {
     Vector result(x.size() + y.size());
     result << x, y;
@@ -21,7 +21,7 @@ Vector attach(const Vector &x, const Vector &y)
 }
 
 // Split Newton Method
-std::tuple<Vector, Vector, int> split_newton(
+inline std::tuple<Vector, Vector, int> split_newton(
     Gradient df, Jacobian J, const Vector &x0, int loc, int maxiter = std::numeric_limits<int>::max(),
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
     const Bounds &bounds = std::nullopt, double bound_fac = 0.8, int jacobian_age = 5)
