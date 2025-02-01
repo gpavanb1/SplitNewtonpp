@@ -5,10 +5,11 @@
 #include <optional>
 #include <string>
 #include <stdexcept>
+#include <vector>
 #include <spdlog/spdlog.h>
-#include "typedefs.h"
-#include "newton.hpp"
-#include "split_newton.hpp"
+#include "splitnewton/typedefs.h"
+#include "splitnewton/newton.hpp"
+#include "splitnewton/split_newton.hpp"
 #include "examples/test_functions.hpp"
 
 // Helper function for formatting numbers in scientific notation
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
     Vector x0 = Eigen::VectorXd::LinSpaced(5000, 21.2, 31.2);
 
     // Mode selection
-    std::string mode = "ROSENBROCK"; // or "TEST"
+    std::string mode = "TEST"; // or "TEST"
     auto [func, der, hess] = set_functions(mode);
 
     // Parameters
@@ -44,8 +45,10 @@ int main(int argc, char *argv[])
     auto start = std::chrono::high_resolution_clock::now();
     spdlog::info("Starting Split-Newton...\n");
 
+    std::vector<int> locs = {int(x0.size() / 3), int(2 * x0.size() / 3)};
+
     auto [xf_split, step_split, iter_split] = split_newton(
-        der, hess, x0, x0.size() / 2, std::numeric_limits<int>::max(), true, dt0, dtmax, false, std::nullopt, 0.8, 1);
+        der, hess, x0, locs, std::numeric_limits<int>::max(), true, dt0, dtmax, false, std::nullopt, 0.8, 1);
 
     auto end = std::chrono::high_resolution_clock::now();
     double elapsed = std::chrono::duration<double>(end - start).count();
@@ -89,6 +92,9 @@ int main(int argc, char *argv[])
     spdlog::info("{}", log_str);
     spdlog::info("\nElapsed time: " + std::to_string(elapsed) + " seconds\n");
     spdlog::info("Total iterations: " + std::to_string(iter_newton) + "\n");
+
+    // Check if xf_split and xf_newton are close
+    spdlog::info("Maximum difference between solutions: " + std::to_string((xf_split - xf_newton).cwiseAbs().maxCoeff()));
 
     return 0;
 }

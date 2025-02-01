@@ -1,8 +1,9 @@
+#include <vector>
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
 #include <spdlog/spdlog.h>
 #include "examples/test_functions.hpp"
-#include "split_newton.hpp"
+#include "splitnewton/split_newton.hpp"
 
 class SplitNewtonTest : public ::testing::Test
 {
@@ -16,7 +17,7 @@ protected:
         Vector::Constant(num_elements, -50.0),  // Lower bounds
         Vector::Constant(num_elements, 50.0))); // Upper bounds
 
-    int loc = int(num_elements / 2); // Split location
+    std::vector<int> loc = {int(num_elements / 2)}; // Split location
 
     // Mode selection
     std::string mode = "TEST"; // or "TEST"
@@ -102,7 +103,7 @@ TEST_F(SplitNewtonTest, NegativeDtException)
 // Test incorrect split location exception
 TEST_F(SplitNewtonTest, IncorrectSplitLocationException)
 {
-    int loc = num_elements + 1; // Incorrect location, greater than length of x0
+    std::vector<int> loc = {num_elements + 1}; // Incorrect location, greater than length of x0
 
     EXPECT_THROW({
         try {

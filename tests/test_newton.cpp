@@ -4,7 +4,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <optional>
-#include "newton.hpp"
+#include "splitnewton/newton.hpp"
 #include "examples/test_functions.hpp"
 
 // Criterion test
