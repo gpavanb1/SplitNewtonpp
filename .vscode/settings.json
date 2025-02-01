@@ -92,6 +92,9 @@
         "csignal": "cpp",
         "span": "cpp",
         "typeindex": "cpp",
-        "charconv": "cpp"
+        "charconv": "cpp",
+        "hash_map": "cpp",
+        "regex": "cpp",
+        "valarray": "cpp"
     }
 }
