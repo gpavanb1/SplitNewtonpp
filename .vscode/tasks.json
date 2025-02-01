@@ -53,5 +53,22 @@
                 "isDefault": true
             }
         },
+        {
+            "label": "Bazel: Coverage",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "coverage",
+                "--experimental_use_llvm_covmap",
+                "--nocache_test_results",
+                "--instrumentation_filter=//include/splitnewton",
+                "//tests:splitnewton_tests",
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
     ]
 }
