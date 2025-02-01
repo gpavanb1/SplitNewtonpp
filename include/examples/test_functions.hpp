@@ -5,12 +5,14 @@
 #include <cmath>
 #include <functional>
 #include <string>
-#include "typedefs.h"
+#include <tuple>
+#include "splitnewton/typedefs.h"
 // Constants
 constexpr double lambda_a = 6.0;
 constexpr double lambda_b = 2.0;
 constexpr double lambda_c = -1.0;
-constexpr double lambda_d = -4.0;
+constexpr double lambda_d = -6.0;
+constexpr double lambda_e = -8.0;
 
 // Helper function for creating log-spaced vectors
 inline Vector logspace(double start, double end, int num)
@@ -24,24 +26,26 @@ inline Vector logspace(double start, double end, int num)
 }
 
 // Helper function for common initialization
-inline std::pair<Vector, Vector> common_init(const Vector &x0)
+inline std::tuple<Vector, Vector, Vector> common_init(const Vector &x0)
 {
-    int la = x0.size() / 2;
-    int lb = x0.size() - la;
+    int la = x0.size() / 3;
+    int lb = x0.size() / 3;
+    int lc = x0.size() - la - lb;
 
     // Generate the `a` and `b` coefficients using logspace
     Vector a = logspace(lambda_a, lambda_b, la);
     Vector b = logspace(lambda_c, lambda_d, lb);
+    Vector c = logspace(lambda_e, lambda_e, lc);
 
-    return {a, b};
+    return {a, b, c};
 }
 
 // Test function: computes f(x0)
 inline Vector test_func(const Vector &x0)
 {
-    auto [a, b] = common_init(x0);
-    Vector coeff(a.size() + b.size());
-    coeff << a, b; // Concatenate `a` and `b`
+    auto [a, b, c] = common_init(x0);
+    Vector coeff(a.size() + b.size() + c.size());
+    coeff << a, b, c; // Concatenate `a`, `b` and `c`
 
     return 0.25 * (coeff.array() * x0.array().pow(4));
 }
@@ -49,9 +53,9 @@ inline Vector test_func(const Vector &x0)
 // Gradient of the test function: computes f'(x0)
 inline Vector test_der(const Vector &x0)
 {
-    auto [a, b] = common_init(x0);
-    Vector coeff(a.size() + b.size());
-    coeff << a, b; // Concatenate `a` and `b`
+    auto [a, b, c] = common_init(x0);
+    Vector coeff(a.size() + b.size() + c.size());
+    coeff << a, b, c; // Concatenate `a`, `b` and `c`
 
     return coeff.array() * x0.array().pow(3);
 }
@@ -59,9 +63,9 @@ inline Vector test_der(const Vector &x0)
 // Hessian of the test function: computes f''(x0)
 inline Matrix test_hess(const Vector &x0)
 {
-    auto [a, b] = common_init(x0);
-    Vector coeff(a.size() + b.size());
-    coeff << a, b; // Concatenate `a` and `b`
+    auto [a, b, c] = common_init(x0);
+    Vector coeff(a.size() + b.size() + c.size());
+    coeff << a, b, c; // Concatenate `a`, `b` and `c`
 
     Vector diagonal = 3.0 * coeff.array() * x0.array().pow(2);
 
