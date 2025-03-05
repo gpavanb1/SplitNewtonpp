@@ -129,36 +129,57 @@ inline std::tuple<Vector, Vector, int> newton(
                 jac += (1.0 / dt) * Eigen::MatrixXd::Identity(x.size(), x.size());
             }
 
+            // Inside your loop when updating the Jacobian:
             if (sparse)
             {
+                // Convert the Jacobian to a sparse matrix and compress it
                 Eigen::SparseMatrix<double> sp_jac = jac.sparseView();
-                sparse_solver.compute(sp_jac);
+                sp_jac.makeCompressed();
+
+                // Compute the diagonal scaling factors (Jacobi preconditioning)
+                // Use the inverse of the diagonal entries. If a diagonal entry is too small, fallback to 1.0.
+                Eigen::VectorXd scale(sp_jac.rows());
+                for (int i = 0; i < sp_jac.rows(); ++i)
+                {
+                    double diag = sp_jac.coeff(i, i);
+                    if (std::abs(diag) < 1e-12)
+                        scale(i) = 1.0;
+                    else
+                        scale(i) = 1.0 / diag;
+                }
+
+                // Apply row scaling: form A_scaled = D * A, where D is the diagonal matrix with entries 'scale'
+                Eigen::SparseMatrix<double> sp_jac_scaled = scale.asDiagonal() * sp_jac;
+
+                // Also scale the right-hand side: dfx_scaled = D * dfx.
+                dfx = df(x);
+                Eigen::VectorXd dfx_scaled = dfx.cwiseProduct(scale);
+                fn = dfx.norm();
+
+                // Now solve the scaled system using SparseLU
+                sparse_solver.compute(sp_jac_scaled);
                 if (sparse_solver.info() != Eigen::Success)
                 {
-                    throw std::runtime_error("Sparse solver factorization failed");
+                    throw std::runtime_error("SparseLU factorization failed");
                 }
-            }
+                Eigen::VectorXd s_scaled = sparse_solver.solve(dfx_scaled);
+                if (sparse_solver.info() != Eigen::Success)
+                {
+                    throw std::runtime_error("SparseLU failed to solve");
+                }
 
+                // Since we applied only row scaling, the solution 's' to the original system is s_scaled.
+                s = s_scaled;
+            }
+            else
+            {
+                dfx = df(x);
+                fn = dfx.norm();
+                s = jac.colPivHouseholderQr().solve(dfx);
+            }
+            s = -s;
             jacobian_iter = 0; // Reset counter
         }
-
-        dfx = df(x);
-        fn = dfx.norm();
-
-        // Solve for step direction
-        if (sparse)
-        {
-            s = sparse_solver.solve(dfx);
-            if (sparse_solver.info() != Eigen::Success)
-            {
-                throw std::runtime_error("Sparse solver failed to solve");
-            }
-        }
-        else
-        {
-            s = jac.colPivHouseholderQr().solve(dfx);
-        }
-        s = -s;
 
         // Apply Armijo rule
         if (armijo)
