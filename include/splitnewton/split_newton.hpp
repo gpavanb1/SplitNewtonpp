@@ -52,7 +52,7 @@ inline std::tuple<Vector, Vector, int> split_newton(
     // Define residual and Jacobian for xa (keeping xb fixed)
     auto dfa = [&](const Vector &xa_local)
     {
-        return df(attach(xa_local, xb)).segment(0, loc);
+        return df(attach(xa_local, xb)).segment(0, loc).eval();
     };
 
     auto Ja = [&](const Vector &xa_local)
@@ -64,7 +64,7 @@ inline std::tuple<Vector, Vector, int> split_newton(
     // Define residual and Jacobian for xb (keeping xa fixed)
     auto dfb = [&](const Vector &xb_local)
     {
-        return df(attach(xa, xb_local)).segment(loc, x0.size() - loc);
+        return df(attach(xa, xb_local)).segment(loc, x0.size() - loc).eval();
     };
 
     auto Jb = [&](const Vector &xb_local)

@@ -2,3 +2,6 @@
 coverage
 bazel-*
 *.bazel.lock
+*.profdata
+*.profraw
+coverage_report

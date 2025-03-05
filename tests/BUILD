@@ -15,7 +15,10 @@ cc_test(
     includes = ["include"],  # Add this to include headers directly
     copts = [
     "-std=c++17",                   # Enable C++17
-    "-g"
+    "-g",
+    "-fsanitize=address", "-fno-omit-frame-pointer",
     ],
+    linkopts = ["-fsanitize=address"],
+    linkstatic = 1,
     timeout = "moderate"
 )
