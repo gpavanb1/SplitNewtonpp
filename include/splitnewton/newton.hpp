@@ -48,7 +48,7 @@ inline bool check_within_bounds(const Vector &x0, const Bounds &bounds = std::nu
 }
 
 // Newton Method
-inline std::tuple<Vector, Vector, int> newton(
+inline std::tuple<Vector, Vector, int, int> newton(
     Gradient df, Jacobian J, Vector x0, int maxiter = std::numeric_limits<int>::max(),
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
     const Bounds &bounds = std::nullopt, double bound_fac = 0.8,
@@ -88,6 +88,13 @@ inline std::tuple<Vector, Vector, int> newton(
      *         - The computed solution vector.
      *         - The computed gradient at the solution.
      *         - The number of iterations performed.
+     *         - The status of the iteration:
+     *            - `1` if converged.
+     *            - `-1` if maximum iterations reached.
+     *            - `-2` if damping factor is too small.
+     *            - `-3` if SparseLU failed to factorize.
+     *            - `-4` if SparseLU failed to solve.
+     *            - `0` if no status is set.
      */
 
     if (dt0 < 0 || dtmax < 0)
@@ -107,6 +114,7 @@ inline std::tuple<Vector, Vector, int> newton(
     double f0 = df(x0).norm();
     Vector s = Eigen::VectorXd::Constant(x.size(), std::numeric_limits<double>::infinity());
     double crit = std::numeric_limits<double>::infinity();
+    int status = 0;
 
     int iter = 0;
     int jacobian_iter = 0; // Counter to track Jacobian age
@@ -117,7 +125,7 @@ inline std::tuple<Vector, Vector, int> newton(
     // Define sparse solver outside the loop to reuse it
     Eigen::SparseLU<Eigen::SparseMatrix<double>> sparse_solver;
 
-    while (crit >= 1 && iter < maxiter)
+    while (1)
     {
         // Update Jacobian and sparse solver only as needed
         if (jacobian_iter == 0 || jacobian_iter >= jacobian_age)
@@ -160,12 +168,16 @@ inline std::tuple<Vector, Vector, int> newton(
                 sparse_solver.compute(sp_jac_scaled);
                 if (sparse_solver.info() != Eigen::Success)
                 {
-                    throw std::runtime_error("SparseLU factorization failed");
+                    spdlog::error("SparseLU failed to factorize");
+                    status = -3;
+                    break;
                 }
                 Eigen::VectorXd s_scaled = sparse_solver.solve(dfx_scaled);
                 if (sparse_solver.info() != Eigen::Success)
                 {
-                    throw std::runtime_error("SparseLU failed to solve");
+                    spdlog::error("SparseLU failed to solve");
+                    status = -4;
+                    break;
                 }
 
                 // Since we applied only row scaling, the solution 's' to the original system is s_scaled.
@@ -220,6 +232,12 @@ inline std::tuple<Vector, Vector, int> newton(
 
             if (best_scaling != 1.0)
                 spdlog::info("Bounds hit. Damping factor: {}", best_scaling);
+            if (best_scaling < 1e-10)
+            {
+                spdlog::warn("Damping factor is too small. Terminating.");
+                status = -2;
+                break;
+            }
         }
 
         // Check convergence
@@ -239,14 +257,24 @@ inline std::tuple<Vector, Vector, int> newton(
 
         // Update timestep
         dt = std::min(dt0 * f0 / (fn + EPS), dtmax);
+
+        // Respond based on status
+        if (iter >= maxiter)
+        {
+            spdlog::warn("Maximum iterations reached");
+            status = -1;
+            break;
+        }
+
+        if (crit < 1.0)
+        {
+            status = 1;
+            spdlog::info("Converged in {} iterations", iter);
+            break;
+        }
     }
 
-    // Warn if fn is large but converged
-    double gradient_criterion = fn / (x.norm() * rel + abs);
-    if (gradient_criterion > 1.0 && !suppress_gradient_check)
-        spdlog::warn("Gradient value is large but converged");
-
-    return {x, s, iter};
+    return {x, s, iter, status};
 }
 
 #endif // NEWTON_HPP
