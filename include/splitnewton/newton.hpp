@@ -117,7 +117,6 @@ inline std::tuple<Vector, Vector, int, int> newton(
     int status = 0;
 
     int iter = 0;
-    int jacobian_iter = 0; // Counter to track Jacobian age
     Vector dfx;
     Matrix jac; // Store the Jacobian matrix
     double fn;
@@ -128,7 +127,7 @@ inline std::tuple<Vector, Vector, int, int> newton(
     while (1)
     {
         // Update Jacobian and sparse solver only as needed
-        if (jacobian_iter == 0 || jacobian_iter >= jacobian_age)
+        if (iter % jacobian_age == 0)
         {
             spdlog::debug("Recomputing Jacobian at iteration {}", iter);
             jac = J(x);
@@ -190,7 +189,6 @@ inline std::tuple<Vector, Vector, int, int> newton(
                 s = jac.colPivHouseholderQr().solve(dfx);
             }
             s = -s;
-            jacobian_iter = 0; // Reset counter
         }
 
         // Apply Armijo rule
@@ -250,18 +248,12 @@ inline std::tuple<Vector, Vector, int, int> newton(
 
         // Update x
         x += s;
-        ++iter;
-
-        // Update Jacobian age counter
-        ++jacobian_iter;
-
-        // Update timestep
-        dt = std::min(dt0 * f0 / (fn + EPS), dtmax);
 
         // Respond based on status
         if (iter >= maxiter)
         {
-            spdlog::warn("Maximum iterations reached");
+            if (iter != 1)
+                spdlog::warn("Maximum iterations reached");
             status = -1;
             break;
         }
@@ -272,6 +264,12 @@ inline std::tuple<Vector, Vector, int, int> newton(
             spdlog::info("Converged in {} iterations", iter);
             break;
         }
+
+        // Update iteration counts
+        ++iter;
+
+        // Update timestep
+        dt = std::min(dt0 * f0 / (fn + EPS), dtmax);
     }
 
     return {x, s, iter, status};

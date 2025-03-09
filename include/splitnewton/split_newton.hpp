@@ -25,7 +25,7 @@ inline Vector attach(const Vector &x, const Vector &y)
 inline std::tuple<Vector, Vector, int, int> split_newton(
     Gradient df, Jacobian J, const Vector &x0, const std::vector<int> &locs, int maxiter = std::numeric_limits<int>::max(),
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
-    const Bounds &bounds = std::nullopt, double bound_fac = 0.8, int jacobian_age = 5)
+    const Bounds &bounds = std::nullopt, double bound_fac = 0.8, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
 {
     if (dt0 < 0 || dtmax < 0)
     {
@@ -35,7 +35,7 @@ inline std::tuple<Vector, Vector, int, int> split_newton(
     // Base case: If no more splits, solve directly with Newton
     if (locs.empty())
     {
-        return newton(df, J, x0, maxiter, sparse, dt0, dtmax, armijo, bounds, bound_fac, false, jacobian_age);
+        return newton(df, J, x0, maxiter, sparse, dt0, dtmax, armijo, bounds, bound_fac, false, jacobian_age, abs, rel);
     }
 
     // Get current split location
@@ -98,11 +98,11 @@ inline std::tuple<Vector, Vector, int, int> split_newton(
     while (1)
     {
         // Solve the rightmost subsystem recursively
-        auto [new_xb, sb, iter_b, status_b] = split_newton(dfb, Jb, xb, new_locs, maxiter, sparse, dt0, dtmax, armijo, bounds_b, bound_fac, jacobian_age);
+        auto [new_xb, sb, iter_b, status_b] = split_newton(dfb, Jb, xb, new_locs, maxiter, sparse, dt0, dtmax, armijo, bounds_b, bound_fac, jacobian_age, abs, rel);
         xb = new_xb;
 
         // One Newton step for left subsystem
-        auto [new_xa, sa, iter_a, status_a] = newton(dfa, Ja, xa, 1, sparse, dt0, dtmax, armijo, bounds_a, bound_fac, true, jacobian_age);
+        auto [new_xa, sa, iter_a, status_a] = newton(dfa, Ja, xa, 1, sparse, dt0, dtmax, armijo, bounds_a, bound_fac, true, jacobian_age, abs, rel);
         xa = new_xa;
         // If Newton failed miserably, return
         if (status_a < -1)
