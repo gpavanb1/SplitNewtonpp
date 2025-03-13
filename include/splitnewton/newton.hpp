@@ -51,8 +51,7 @@ inline bool check_within_bounds(const Vector &x0, const Bounds &bounds = std::nu
 inline std::tuple<Vector, Vector, int, int> newton(
     Gradient df, Jacobian J, Vector x0, int maxiter = std::numeric_limits<int>::max(),
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
-    const Bounds &bounds = std::nullopt, double bound_fac = 0.8,
-    bool suppress_gradient_check = false, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
+    const Bounds &bounds = std::nullopt, double bound_fac = 0.8, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
 {
 
     /**
@@ -76,9 +75,6 @@ inline std::tuple<Vector, Vector, int, int> newton(
      *        object - `std::pair` of `Vector` (default is `std::nullopt`).
      * @param bound_fac Factor for damping the step size on hitting bounds during the
      *        iterations (default is `0.8`).
-     * @param suppress_gradient_check Whether to suppress the gradient norm check -
-     *        used in Split Newton to avoid checking as only 1 iteration is done in
-     *        A-Cycle (default is `false`).
      * @param jacobian_age Number of iterations after which the Jacobian is updated
      *        (default is `5`).
      * @param abs Absolute tolerance for convergence (default is `1e-5`).

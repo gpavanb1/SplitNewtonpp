@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     spdlog::info("Starting Newton...\n");
 
     auto [xf_newton, step_newton, iter_newton, status_newton] = newton(
-        der, hess, x0, std::numeric_limits<int>::max(), true, dt0, dtmax, false, std::nullopt, 0.8, false, 2);
+        der, hess, x0, std::numeric_limits<int>::max(), true, dt0, dtmax, false, std::nullopt, 0.8, 2);
     assert(status_newton == 1);
     end = std::chrono::high_resolution_clock::now();
     elapsed = std::chrono::duration<double>(end - start).count();

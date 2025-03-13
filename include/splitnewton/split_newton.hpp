@@ -35,7 +35,7 @@ inline std::tuple<Vector, Vector, int, int> split_newton(
     // Base case: If no more splits, solve directly with Newton
     if (locs.empty())
     {
-        return newton(df, J, x0, maxiter, sparse, dt0, dtmax, armijo, bounds, bound_fac, false, jacobian_age, abs, rel);
+        return newton(df, J, x0, maxiter, sparse, dt0, dtmax, armijo, bounds, bound_fac, jacobian_age, abs, rel);
     }
 
     // Get current split location
@@ -102,7 +102,7 @@ inline std::tuple<Vector, Vector, int, int> split_newton(
         xb = new_xb;
 
         // One Newton step for left subsystem
-        auto [new_xa, sa, iter_a, status_a] = newton(dfa, Ja, xa, 1, sparse, dt0, dtmax, armijo, bounds_a, bound_fac, true, jacobian_age, abs, rel);
+        auto [new_xa, sa, iter_a, status_a] = newton(dfa, Ja, xa, 1, sparse, dt0, dtmax, armijo, bounds_a, bound_fac, jacobian_age, abs, rel);
         xa = new_xa;
         // If Newton failed miserably, return
         if (status_a < -1)

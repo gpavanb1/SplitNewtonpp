@@ -85,7 +85,7 @@ TEST(NewtonTest, SimpleConvergence)
     auto J = [](const Vector &x)
     { return Matrix::Identity(x.size(), x.size()); };
 
-    auto [x, step, iter, status] = newton(df, J, x0, 1, false, 2.0, 2.0, false, std::nullopt, 0.8, true);
+    auto [x, step, iter, status] = newton(df, J, x0, 1, false, 2.0, 2.0, false, std::nullopt, 0.8);
     ASSERT_TRUE(status == -1);
     ASSERT_TRUE(step.isApprox(expected_step, 1e-5));
 }
@@ -116,7 +116,7 @@ TEST(NewtonTest, RosenbrockConvergence)
     auto J = [](const Vector &x)
     { return rosen_hess(x); };
 
-    auto [x, s, iter, status] = newton(df, J, x0, 100, false, 0.0, 1.0, false, std::nullopt, 0.8, false, 1);
+    auto [x, s, iter, status] = newton(df, J, x0, 100, false, 0.0, 1.0, false, std::nullopt, 0.8, 1);
     ASSERT_TRUE(x.isApprox(Vector::Ones(x.size()), 1e-5));
 }
 
@@ -148,6 +148,6 @@ TEST(NewtonTest, ArmijoRule)
     auto J = [](const Vector &x)
     { return Matrix::Identity(x.size(), x.size()); };
 
-    auto [x, step, iter, status] = newton(df, J, x0, 1, false, 0.1, 1.0, true, std::nullopt, 0.8, true);
+    auto [x, step, iter, status] = newton(df, J, x0, 1, false, 0.1, 1.0, true, std::nullopt, 0.8);
     ASSERT_LT(step.norm(), 1.0); // Armijo scaling should reduce the step size
 }
