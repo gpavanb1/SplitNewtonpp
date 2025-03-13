@@ -95,6 +95,11 @@
         "charconv": "cpp",
         "hash_map": "cpp",
         "regex": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "__std_stream": "cpp",
+        "cfenv": "cpp",
+        "forward_list": "cpp",
+        "future": "cpp",
+        "strstream": "cpp"
     }
 }
