@@ -50,12 +50,12 @@ There is an example in `main.cpp` which can be compiled and executed
 
 ## How much faster is this?
 
-For the bounded Rosenbrock problem with N=5000 and single split location, the C++ version is almost 2.5x faster (even though the sparse linear solver is in C for the Python version). The comparison is as follows
+For the bounded test problem with N=5000 and two split locations (at 1/3rd and 2/3rd), the C++ version is faster (even though the sparse linear solver is in C for the Python version). The comparison is as follows
 
 | Method    | Time       | Iterations    | Time/Iteration |
 |-----------|------------|---------------| -------------- |
-C++ |  ~14 seconds  | 21  | ~0.6 seconds |
-Python | ~23 seconds | 15  | ~1.5 seconds |
+C++ |  ~15 seconds  | 16  | <1 seconds |
+Python | ~37 seconds | 33  | ~1.2 seconds |
 
 ## How to test?
 You can run tests with the `gtest` framework. There is a `Bazel: Test` task in `.vscode/tasks.json` which can be used to run the tests.
