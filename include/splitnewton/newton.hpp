@@ -112,7 +112,7 @@ inline std::tuple<Vector, Vector, int, int> newton(
     double crit = std::numeric_limits<double>::infinity();
     int status = 0;
 
-    int iter = 0;
+    int iter = 1;
     Vector dfx;
     Matrix jac; // Store the Jacobian matrix
     double fn;
@@ -123,7 +123,7 @@ inline std::tuple<Vector, Vector, int, int> newton(
     while (1)
     {
         // Update Jacobian and sparse solver only as needed
-        if (iter % jacobian_age == 0)
+        if (jacobian_age == 1 || iter % jacobian_age == 1)
         {
             spdlog::debug("Recomputing Jacobian at iteration {}", iter);
             jac = J(x);
@@ -225,10 +225,10 @@ inline std::tuple<Vector, Vector, int, int> newton(
             s *= best_scaling;
 
             if (best_scaling != 1.0)
-                spdlog::info("Bounds hit. Damping factor: {}", best_scaling);
+                spdlog::debug("Bounds hit. Damping factor: {}", best_scaling);
             if (best_scaling < 1e-10)
             {
-                spdlog::warn("Damping factor is too small. Terminating.");
+                spdlog::debug("Damping factor is too small. Ending Newton prematurely...");
                 status = -2;
                 break;
             }
@@ -245,6 +245,13 @@ inline std::tuple<Vector, Vector, int, int> newton(
         // Update x
         x += s;
 
+        if (crit < 1.0)
+        {
+            status = 1;
+            spdlog::debug("Converged in {} iterations", iter);
+            break;
+        }
+
         // Respond based on status
         if (iter >= maxiter)
         {
@@ -254,18 +261,11 @@ inline std::tuple<Vector, Vector, int, int> newton(
             break;
         }
 
-        if (crit < 1.0)
-        {
-            status = 1;
-            spdlog::info("Converged in {} iterations", iter);
-            break;
-        }
+        // Update timestep
+        dt = std::min(dt0 * f0 / (fn + EPS), dtmax);
 
         // Update iteration counts
         ++iter;
-
-        // Update timestep
-        dt = std::min(dt0 * f0 / (fn + EPS), dtmax);
     }
 
     return {x, s, iter, status};

@@ -92,7 +92,7 @@ inline std::tuple<Vector, Vector, int, int> split_newton(
     Vector x = x0;
     Vector s = Vector::Constant(x0.size(), std::numeric_limits<double>::infinity());
     double crit = std::numeric_limits<double>::infinity();
-    int iter = 0;
+    int iter = 1;
     int status = 0;
 
     while (1)
@@ -117,7 +117,7 @@ inline std::tuple<Vector, Vector, int, int> split_newton(
         double fn = df(xnew).norm();
         crit = criterion(x, s, fn);
 
-        spdlog::trace("Iteration {}: Criterion = {}", iter, crit);
+        spdlog::trace("Split-Newton: Iteration {}: Criterion = {}", iter, crit);
 
         // Check if converged
         if (crit < 1.0)
@@ -129,6 +129,7 @@ inline std::tuple<Vector, Vector, int, int> split_newton(
         // Reached maximum iterations
         if (iter >= maxiter)
         {
+            spdlog::warn("Maximum Split-Newton iterations reached");
             status = -1;
             break;
         }
