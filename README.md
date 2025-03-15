@@ -54,7 +54,7 @@ For the bounded test problem with N=5000 and two split locations (at 1/3rd and 2
 
 | Method    | Time       | Iterations    | Time/Iteration |
 |-----------|------------|---------------| -------------- |
-C++ |  ~15 seconds  | 16  | <1 seconds |
+C++ |  ~36 seconds  | 44  | <0.8 seconds |
 Python | ~37 seconds | 33  | ~1.2 seconds |
 
 ## How to test?
