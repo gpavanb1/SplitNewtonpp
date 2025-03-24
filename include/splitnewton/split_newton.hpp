@@ -11,6 +11,7 @@
 #include <tuple>
 #include <vector>
 #include "typedefs.h"
+#include "helper.hpp"
 #include "newton.hpp"
 
 // Function to attach two vectors
@@ -117,7 +118,7 @@ inline std::tuple<Vector, Vector, int, int> split_newton(
         double fn = df(xnew).norm();
         crit = criterion(x, s, fn);
 
-        spdlog::trace("Split-Newton: Iteration {}: Criterion = {}", iter, crit);
+        spdlog::trace("Split-Newton: Iteration {}: Criterion = {}", iter, to_scientific(crit, 3));
 
         // Check if converged
         if (crit < 1.0)
