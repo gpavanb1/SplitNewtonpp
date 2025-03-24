@@ -26,7 +26,7 @@ inline Vector attach(const Vector &x, const Vector &y)
 inline std::tuple<Vector, Vector, int, int> split_newton(
     Gradient df, Jacobian J, const Vector &x0, const std::vector<int> &locs, int maxiter = std::numeric_limits<int>::max(),
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
-    const Bounds &bounds = std::nullopt, double bound_fac = 0.8, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
+    const Bounds &bounds = std::nullopt, double bound_fac = 0.8, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6, int npts = 1)
 {
     if (dt0 < 0 || dtmax < 0)
     {
@@ -116,7 +116,7 @@ inline std::tuple<Vector, Vector, int, int> split_newton(
         Vector xnew = attach(xa, xb);
         s = xnew - x;
         double fn = df(xnew).norm();
-        crit = criterion(x, s, fn);
+        crit = norm2(x, s, npts, abs, rel);
 
         spdlog::trace("Split-Newton: Iteration {}: Criterion = {}", iter, to_scientific(crit, 3));
 
