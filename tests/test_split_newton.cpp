@@ -44,13 +44,13 @@ TEST_F(SplitNewtonTest, NewtonVsSplitNewtonSparse)
 
     // Run newton solver
     auto [x_opt_newton, step_newton, iterations_newton, status_newton] = newton(
-        der, hess, x0, std::numeric_limits<int>::max(),
-        sparse, 0.0, 0.1, false, bounds, 0.8, 1);
+        der, hess, x0, std::numeric_limits<int>::max(), 1,
+        sparse, 0.0, 0.1, bounds, 1);
 
     // Run split_newton solver
     auto [x_opt_split_newton, step_split_newton, iterations_split_newton, status_split_newton] = split_newton(
-        der, hess, x0, loc, std::numeric_limits<int>::max(),
-        sparse, 0.0, 0.1, false, bounds, 0.8, 1);
+        der, hess, x0, loc, std::numeric_limits<int>::max(), 1,
+        sparse, 0.0, 0.1, bounds, 1);
 
     // Compare results
     EXPECT_LE((x_opt_newton - x_opt_split_newton).cwiseAbs().maxCoeff(), 2e-4);
@@ -65,13 +65,13 @@ TEST_F(SplitNewtonTest, NewtonVsSplitNewtonDense)
 
     // Run newton solver
     auto [x_opt_newton, step_newton, iterations_newton, status_newton] = newton(
-        der, hess, x0, std::numeric_limits<int>::max(),
-        sparse, 0.0, 0.1, false, bounds, 0.8, 1);
+        der, hess, x0, std::numeric_limits<int>::max(), 1,
+        sparse, 0.0, 0.1, bounds, 1);
 
     // Run split_newton solver
     auto [x_opt_split_newton, step_split_newton, iterations_split_newton, status_split_newton] = split_newton(
-        der, hess, x0, loc, std::numeric_limits<int>::max(),
-        sparse, 0.0, 0.1, false, bounds, 0.8, 1);
+        der, hess, x0, loc, std::numeric_limits<int>::max(), 1,
+        sparse, 0.0, 0.1, bounds, 1);
 
     // Compare results
     EXPECT_LE((x_opt_newton - x_opt_split_newton).cwiseAbs().maxCoeff(), 2e-4);
@@ -87,7 +87,7 @@ TEST_F(SplitNewtonTest, NegativeDtException)
     EXPECT_THROW({
         try {
             split_newton(der, hess, x0, loc, 
-                std::numeric_limits<int>::max(), false, -0.1, 1.0);
+                std::numeric_limits<int>::max(), 1, false, -0.1, 1.0);
         } catch (const std::invalid_argument& e) {
             EXPECT_STREQ("Must specify positive dt0 and dtmax", e.what());
             throw;
@@ -97,7 +97,7 @@ TEST_F(SplitNewtonTest, NegativeDtException)
     EXPECT_THROW({
         try {
             split_newton(der, hess, x0, loc, 
-                std::numeric_limits<int>::max(), false, 0.1, -1.0);
+                std::numeric_limits<int>::max(), 1, false, 0.1, -1.0);
         } catch (const std::invalid_argument& e) {
             EXPECT_STREQ("Must specify positive dt0 and dtmax", e.what());
             throw;
