@@ -17,6 +17,7 @@ constexpr double EPS = std::numeric_limits<double>::epsilon();
 // Weighted norm
 inline double norm2(const Vector &x, const Vector &s, int npts = 1, double abs = 1e-5, double rel = 1e-5)
 {
+    // This is assumed to be divisible here
     int nv = x.size() / npts;
 
     double sum = 0.0;
@@ -167,8 +168,9 @@ inline std::tuple<Vector, Vector, int> damp_step(const Matrix &jac, Gradient df,
         {
             std::tie(step1, status) = dense_linear_solve(jac, df(x1));
         }
+        // Exit if the linear solve failed
         if (status != 1)
-            break;
+            return {x1, step1, status};
 
         // Check convergence
         s1 = norm2(x1, step1, npts, abs, rel);
@@ -210,9 +212,9 @@ inline std::tuple<Vector, Vector, int> damp_step(const Matrix &jac, Gradient df,
 
 // Newton Method
 inline std::tuple<Vector, Vector, int, int> newton(
-    Gradient df, Jacobian J, Vector x0, int maxiter = std::numeric_limits<int>::max(),
-    bool sparse = false, double dt0 = 0.0, double dtmax = 1.0, bool armijo = false,
-    const Bounds &bounds = std::nullopt, double bound_fac = 0.8, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6, int npts = 1)
+    Gradient df, Jacobian J, Vector x0, int maxiter = std::numeric_limits<int>::max(), int npts = 1,
+    bool sparse = false, double dt0 = 0.0, double dtmax = 1.0,
+    const Bounds &bounds = std::nullopt, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
 {
     /**
      * @brief Applies the Newton method to solve for a root of a function.
@@ -226,20 +228,17 @@ inline std::tuple<Vector, Vector, int, int> newton(
      * @param x0 The initial guess for the root.
      * @param maxiter The maximum number of iterations (default is
      *        `std::numeric_limits<int>::max()`).
+     * @param npts Number of points in the vector (used for multi-variate problems - default is `1`).
      * @param sparse Whether to use sparse matrices for the Jacobian (default is `false`).
      * @param dt0 Initial step size (default is `0.0`).
      * @param dtmax Maximum allowable step size (default is `1.0`).
-     * @param armijo Whether to use the Armijo rule for step size selection (default
-     *        is `false`).
      * @param bounds Optional bounds for the solution, represented by a `Bounds`
      *        object - `std::pair` of `Vector` (default is `std::nullopt`).
-     * @param bound_fac Factor for damping the step size on hitting bounds during the
-     *        iterations (default is `0.8`).
      * @param jacobian_age Number of iterations after which the Jacobian is updated
      *        (default is `5`).
      * @param abs Absolute tolerance for convergence (default is `1e-5`).
      * @param rel Relative tolerance for convergence (default is `1e-6`).
-     * @param npts Number of points in the vector (used for multi-variate problems - default is `1`).
+
      *
      * @return A tuple containing:
      *         - The computed solution vector.

@@ -50,7 +50,7 @@ There is an example in `main.cpp` which can be compiled and executed
 
 ## How much faster is this?
 
-For the bounded test problem with N=5000 and two split locations (at 1/3rd and 2/3rd), the C++ version is faster (even though the sparse linear solver is in C for the Python version). The comparison is as follows
+For the bounded test problem with N=5000 and two split locations (at 1/3rd and 2/3rd), the C++ version is faster (even though it is damped Newton and the sparse linear solver is in C for the Python version). The comparison is as follows
 
 | Method    | Time       | Iterations    | Time/Iteration |
 |-----------|------------|---------------| -------------- |
