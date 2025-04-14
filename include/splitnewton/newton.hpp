@@ -62,6 +62,28 @@ inline bool check_within_bounds(const Vector &x0, const Bounds &bounds = std::nu
     return true;
 }
 
+// Helper function to project onto bounds if exceeding
+inline Vector project_onto_bounds(const Vector &x, const Bounds &bounds)
+{
+    // If no bounds provided, return the original vector.
+    if (!bounds)
+        return x;
+
+    const auto &[lower, upper] = *bounds;
+    if (lower.size() != x.size() || upper.size() != x.size())
+    {
+        throw std::invalid_argument("Bounds must match the size of the solution vector.");
+    }
+
+    Vector x_proj = x;
+    for (int i = 0; i < x_proj.size(); ++i)
+    {
+        // Clamp x[i] between lower and upper.
+        x_proj(i) = std::max(lower[i], std::min(upper[i], x_proj(i)));
+    }
+    return x_proj;
+}
+
 // Helper function: Solve the linear system using either a dense or sparse approach.
 // The function returns a tuple with the Newton step (already negated) and the norm of the residual.
 inline std::tuple<Vector, int> sparse_linear_solve(const Eigen::SparseMatrix<double> &jac, const Vector &dfx)
@@ -110,23 +132,39 @@ inline std::tuple<Vector, int> dense_linear_solve(const Matrix &jac, const Vecto
 // Compute scaling coefficients given the vector, step and bounds
 inline double compute_bounds_scaling(const Vector &x, const Vector &s, const Bounds &bounds)
 {
-    double best_scaling = 1.0;
+    // If no bounds, then allow full step.
     if (!bounds.has_value())
-        return best_scaling;
+        return 1.0;
 
-    // Else, extract bounds and find limits
     const auto &[lower, upper] = *bounds;
+    if (lower.size() != x.size() || upper.size() != x.size())
+    {
+        throw std::invalid_argument("Bounds must match the size of the solution vector.");
+    }
 
+    double f_bound = 1.0;
     for (int i = 0; i < x.size(); ++i)
     {
-        if (s(i) != 0.0)
+        if (std::abs(s(i)) < EPS)
+            continue; // No movement, so skip
+
+        double legal_delta;
+        if (s(i) > 0)
+            legal_delta = upper[i] - x[i];
+        else // s(i) < 0
+            legal_delta = lower[i] - x[i];
+
+        double cur_factor = legal_delta / s(i);
+        // If the computed factor is negative, it means that even a tiny full step would violate the bound.
+        if (cur_factor < 0)
         {
-            double legal_delta = (s(i) < 0 ? lower[i] - x[i] : upper[i] - x[i]);
-            double scaling = legal_delta / s(i);
-            best_scaling = std::min(best_scaling, scaling);
+            spdlog::warn("Component {}: Newton direction would immediately violate bounds. Setting damping factor to zero.", i);
+            return 0.0; // return zero step factor to prevent out-of-bound update.
         }
+        // Update the overall factor (which is the minimum over all components)
+        f_bound = std::min(f_bound, cur_factor);
     }
-    return best_scaling;
+    return f_bound;
 }
 
 inline std::tuple<Vector, Vector, int> damp_step(const Matrix &jac, Gradient df, const Vector &x, const Vector &s, const Bounds &bounds, int npts = 1, bool sparse = true, double abs = 1e-5, double rel = 1e-5, int NDAMP = 7, double damp_fac = std::sqrt(2.0))
@@ -260,10 +298,11 @@ inline std::tuple<Vector, Vector, int, int> newton(
 
     double dt = dt0;
 
-    // Check if initial point is within bounds
-    if (!check_within_bounds(x0, bounds))
+    // If bounds are provided and x0 is out-of-bound, project it.
+    if (bounds && !check_within_bounds(x0, bounds))
     {
-        throw std::invalid_argument("Seed must be within the provided bounds.");
+        spdlog::warn("Initial seed out of bounds; projecting onto feasible region.");
+        x0 = project_onto_bounds(x0, bounds);
     }
 
     // Current step and future step for damped Newton
