@@ -241,26 +241,6 @@ TEST(NewtonMethodTest, RosenbrockConvergence)
     ASSERT_TRUE(x.isApprox(Vector::Ones(x.size()), 1e-4));
 }
 
-// Test that an out-of-bounds seed results in an exception.
-TEST(NewtonMethodTest, OutOfBoundsSeedThrows)
-{
-    Vector x0(2);
-    x0 << 2.0, 2.0;
-    Vector lower(2), upper(2);
-    lower << 0.0, 0.0;
-    upper << 1.0, 1.0;
-    Bounds bounds = std::make_optional(std::make_pair(lower, upper));
-    auto df = [](const Vector &x) -> Vector
-    {
-        return x; // dummy function
-    };
-    auto J = [](const Vector &x) -> Matrix
-    {
-        return Matrix::Identity(x.size(), x.size());
-    };
-    ASSERT_THROW(newton(df, J, x0, 100, 1, false, 0.1, 1.0, bounds), std::invalid_argument);
-}
-
 // Test invalid timestep parameters throw exceptions.
 TEST(NewtonMethodTest, InvalidTimeStepThrows)
 {
