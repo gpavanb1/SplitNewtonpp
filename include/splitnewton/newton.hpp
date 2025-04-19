@@ -348,7 +348,7 @@ inline std::tuple<Vector, Vector, int, int> newton(
             break;
 
         // Damped Newton step
-        std::tie(x1, step1, status) = damp_step(jac, df, x, step0, bounds, npts, sparse);
+        std::tie(x1, step1, status) = damp_step(jac, df, x, step0, bounds, npts, sparse, abs, rel);
         if (status < 0)
             break;
         // Continue if status is 0
