@@ -291,6 +291,10 @@ inline std::tuple<Vector, Vector, int, int> newton(
      *            - `0` if no status is set.
      */
 
+    // Handle empty input edge-case
+    if (x0.size() == 0)
+        return {{}, {}, 1, 1};
+
     if (dt0 < 0 || dtmax < 0)
     {
         throw std::invalid_argument("Must specify positive dt0 and dtmax.");
