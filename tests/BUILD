@@ -1,3 +1,16 @@
+# Standalone binary to visually verify split vs no-split solver paths
+cc_binary(
+    name = "test_split_debug",
+    srcs = ["test_split_debug.cpp"],
+    deps = [
+        "//:splitnewton_lib",
+        "@spdlog//:spdlog",
+        "@eigen"
+    ],
+    includes = ["include"],
+    copts = ["-std=c++17"],
+)
+
 # Test suite combining both test files
 cc_test(
     name = "splitnewton_tests",
