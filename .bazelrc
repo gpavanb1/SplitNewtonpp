@@ -1,0 +1,17 @@
+build --macos_minimum_os=12.0
+
+# Use LLVM toolchain (matches root SplitFXMpp)
+build --action_env=CC=/usr/local/opt/llvm/bin/clang
+build --action_env=CXX=/usr/local/opt/llvm/bin/clang++
+build --action_env=PATH=/usr/local/opt/llvm/bin:/usr/bin:/bin
+common --repo_env=CC=/usr/local/opt/llvm/bin/clang
+common --repo_env=CXX=/usr/local/opt/llvm/bin/clang++
+
+# System headers (required for errno.h etc. with Homebrew LLVM on macOS)
+build --copt=-isysroot --copt=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+build --linkopt=-isysroot --linkopt=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+build --linkopt="-Wl,-platform_version,macos,12.0,12.0"
+
+# OpenMP (if used)
+build --copt=-fopenmp
+build --linkopt=-fopenmp --linkopt=-L/usr/local/opt/llvm/lib --linkopt=-lomp
