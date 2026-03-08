@@ -15,7 +15,7 @@
 constexpr double EPS = std::numeric_limits<double>::epsilon();
 
 // Weighted norm
-inline double norm2(const Vector &x, const Vector &s, int npts = 1, double abs = 1e-5, double rel = 1e-5)
+inline double norm2(const Vector& x, const Vector& s, int npts = 1, double abs = 1e-5, double rel = 1e-5)
 {
     // This is assumed to be divisible here
     int nv = x.size() / npts;
@@ -38,14 +38,14 @@ inline double norm2(const Vector &x, const Vector &s, int npts = 1, double abs =
 }
 
 // Check if within bounds
-inline bool check_within_bounds(const Vector &x0, const Bounds &bounds = std::nullopt)
+inline bool check_within_bounds(const Vector& x0, const Bounds& bounds = std::nullopt)
 {
     if (!bounds)
     {
-        return true; // No bounds to check
+        return true;  // No bounds to check
     }
 
-    const auto &[lower, upper] = *bounds;
+    const auto& [lower, upper] = *bounds;
 
     if (lower.size() != x0.size() || upper.size() != x0.size())
     {
@@ -63,13 +63,13 @@ inline bool check_within_bounds(const Vector &x0, const Bounds &bounds = std::nu
 }
 
 // Helper function to project onto bounds if exceeding
-inline Vector project_onto_bounds(const Vector &x, const Bounds &bounds)
+inline Vector project_onto_bounds(const Vector& x, const Bounds& bounds)
 {
     // If no bounds provided, return the original vector.
     if (!bounds)
         return x;
 
-    const auto &[lower, upper] = *bounds;
+    const auto& [lower, upper] = *bounds;
     if (lower.size() != x.size() || upper.size() != x.size())
     {
         throw std::invalid_argument("Bounds must match the size of the solution vector.");
@@ -86,7 +86,7 @@ inline Vector project_onto_bounds(const Vector &x, const Bounds &bounds)
 
 // Helper function: Solve the linear system using either a dense or sparse approach.
 // The function returns a tuple with the Newton step (already negated) and the norm of the residual.
-inline std::tuple<Vector, int> sparse_linear_solve(const Eigen::SparseMatrix<double> &jac, const Vector &dfx)
+inline std::tuple<Vector, int> sparse_linear_solve(const Eigen::SparseMatrix<double>& jac, const Vector& dfx)
 {
     double status = 0;
     Vector s(dfx.size());
@@ -122,7 +122,7 @@ inline std::tuple<Vector, int> sparse_linear_solve(const Eigen::SparseMatrix<dou
     return {-s, status};
 }
 
-inline std::tuple<Vector, int> dense_linear_solve(const Matrix &jac, const Vector &dfx)
+inline std::tuple<Vector, int> dense_linear_solve(const Matrix& jac, const Vector& dfx)
 {
     double status = 1;
     Vector s = jac.colPivHouseholderQr().solve(dfx);
@@ -130,13 +130,13 @@ inline std::tuple<Vector, int> dense_linear_solve(const Matrix &jac, const Vecto
 }
 
 // Compute scaling coefficients given the vector, step and bounds
-inline double compute_bounds_scaling(const Vector &x, const Vector &s, const Bounds &bounds)
+inline double compute_bounds_scaling(const Vector& x, const Vector& s, const Bounds& bounds)
 {
     // If no bounds, then allow full step.
     if (!bounds.has_value())
         return 1.0;
 
-    const auto &[lower, upper] = *bounds;
+    const auto& [lower, upper] = *bounds;
     if (lower.size() != x.size() || upper.size() != x.size())
     {
         throw std::invalid_argument("Bounds must match the size of the solution vector.");
@@ -146,12 +146,12 @@ inline double compute_bounds_scaling(const Vector &x, const Vector &s, const Bou
     for (int i = 0; i < x.size(); ++i)
     {
         if (std::abs(s(i)) < EPS)
-            continue; // No movement, so skip
+            continue;  // No movement, so skip
 
         double legal_delta;
         if (s(i) > 0)
             legal_delta = upper[i] - x[i];
-        else // s(i) < 0
+        else  // s(i) < 0
             legal_delta = lower[i] - x[i];
 
         double cur_factor = legal_delta / s(i);
@@ -159,7 +159,7 @@ inline double compute_bounds_scaling(const Vector &x, const Vector &s, const Bou
         if (cur_factor < 0)
         {
             spdlog::warn("Component {}: Newton direction would immediately violate bounds. Setting damping factor to zero.", i);
-            return 0.0; // return zero step factor to prevent out-of-bound update.
+            return 0.0;  // return zero step factor to prevent out-of-bound update.
         }
         // Update the overall factor (which is the minimum over all components)
         f_bound = std::min(f_bound, cur_factor);
@@ -167,7 +167,7 @@ inline double compute_bounds_scaling(const Vector &x, const Vector &s, const Bou
     return f_bound;
 }
 
-inline std::tuple<Vector, Vector, int> damp_step(const Matrix &jac, Gradient df, const Vector &x, const Vector &s, const Bounds &bounds, int npts = 1, bool sparse = true, double abs = 1e-5, double rel = 1e-5, int NDAMP = 7, double damp_fac = std::sqrt(2.0))
+inline std::tuple<Vector, Vector, int> damp_step(const Matrix& jac, Gradient df, const Vector& x, const Vector& s, const Bounds& bounds, int npts = 1, bool sparse = true, double abs = 1e-5, double rel = 1e-5, int NDAMP = 7, double damp_fac = std::sqrt(2.0))
 {
     Vector x1, step1;
     int status = 0;
@@ -252,7 +252,7 @@ inline std::tuple<Vector, Vector, int> damp_step(const Matrix &jac, Gradient df,
 inline std::tuple<Vector, Vector, int, int> newton(
     Gradient df, Jacobian J, Vector x0, int maxiter = std::numeric_limits<int>::max(), int npts = 1,
     bool sparse = false, double dt0 = 0.0, double dtmax = 1.0,
-    const Bounds &bounds = std::nullopt, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
+    const Bounds& bounds = std::nullopt, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
 {
     /**
      * @brief Applies the Newton method to solve for a root of a function.
@@ -323,7 +323,7 @@ inline std::tuple<Vector, Vector, int, int> newton(
     // Evaluate f0
     double f0 = df(x0).cwiseAbs().maxCoeff();
 
-    Matrix jac; // Store the Jacobian matrix
+    Matrix jac;  // Store the Jacobian matrix
     double fn;
 
     while (1)
@@ -401,4 +401,4 @@ inline std::tuple<Vector, Vector, int, int> newton(
     return {x, step, iter, status};
 }
 
-#endif // NEWTON_HPP
+#endif  // NEWTON_HPP
