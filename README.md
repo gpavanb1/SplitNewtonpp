@@ -48,6 +48,17 @@ This is a header-only library and can be most easily used with VSCode. The `task
 
 There is an example in `main.cpp` which can be compiled and executed
 
+## Block solver options
+
+By default, SplitNewton++ uses the recursive split Newton solver. You can switch to alternative block-based solvers via command-line flags or environment variables:
+
+| Option | Flag | Environment variable | Description |
+|--------|------|----------------------|-------------|
+| Block-Jacobi | `-use_jacobi` | `USE_JACOBI=1` | Updates all blocks simultaneously using values from the previous iteration |
+| Block-Gauss-Seidel | `-use_gauss_seidel` | `USE_GAUSS_SEIDEL=1` | Updates blocks sequentially, using the latest values as they become available |
+
+Call `splitnewton::initialize(argc, argv)` at startup to parse command-line flags. Environment variables are checked automatically when flags are not passed.
+
 ## How much faster is this?
 
 For the bounded test problem with N=5000 and two split locations (at 1/3rd and 2/3rd), the C++ version is faster (even though it is damped Newton and the sparse linear solver is in C for the Python version). The comparison is as follows
