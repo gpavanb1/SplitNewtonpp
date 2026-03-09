@@ -36,3 +36,24 @@ cc_test(
     linkstatic = 1,
     timeout = "moderate"
 )
+
+# Coverage-only test target (no sanitizers - they conflict with coverage instrumentation)
+cc_test(
+    name = "splitnewton_coverage_tests",
+    srcs = [
+        "test_newton.cpp",
+        "test_split_newton.cpp",
+        "test_block_newton.cpp",
+    ],
+    deps = [
+        "//:splitnewton_lib",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@spdlog//:spdlog",
+        "@eigen"
+    ],
+    includes = ["include"],
+    copts = ["-std=c++17", "-g"],
+    linkstatic = 1,
+    timeout = "moderate"
+)
