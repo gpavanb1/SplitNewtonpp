@@ -17,6 +17,7 @@ cc_test(
     srcs = [
         "test_newton.cpp",
         "test_split_newton.cpp",
+        "test_block_newton.cpp",
     ],
     deps = [
         "//:splitnewton_lib",  # Your library
