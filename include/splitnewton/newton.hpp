@@ -349,15 +349,20 @@ inline std::tuple<Vector, Vector, int, int> newton(
         else
             std::tie(step0, status) = dense_linear_solve(jac, df(x));
         if (status != 1)
+        {
+            step = step0;
             break;
+        }
 
         // Damped Newton step
         std::tie(x1, step1, status) = damp_step(jac, df, x, step0, bounds, npts, sparse, abs, rel);
         if (status < 0)
+        {
+            x = x1;
+            step = step1;
             break;
+        }
         // Continue if status is 0
-
-        // Update x
         x = x1;
         step = step1;
 
