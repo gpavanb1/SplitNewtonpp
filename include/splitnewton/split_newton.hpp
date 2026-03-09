@@ -14,6 +14,9 @@
 #include "helper.hpp"
 #include "newton.hpp"
 #include "shuffler.hpp"
+#include "block/jacobi.hpp"
+#include "block/gauss_seidel.hpp"
+#include "options.hpp"
 
 // Function to attach two vectors
 inline Vector attach(const Vector& x, const Vector& y)
@@ -231,9 +234,28 @@ inline std::tuple<Vector, Vector, int, int> split_newton(
         locs.push_back(l * npts);
     }
 
-    // 6. Call recursive blocked solver
-    auto [xf_split, step_split, iter, status] = split_newton_recursive(
-        df, J, x0, locs, maxiter, npts, sparse, dt0, dtmax, bounds, jacobian_age, abs, rel);
+    // 6. Call appropriate blocked solver
+    Vector xf_split, step_split;
+    int iter, status;
+
+    if (splitnewton::Options::getInstance().hasFlag("-use_jacobi"))
+    {
+        spdlog::info("Using Block-Jacobi Newton solver");
+        std::tie(xf_split, step_split, iter, status) = jacobi_block_newton(
+            df, J, x0, locs, maxiter, npts, sparse, dt0, dtmax, bounds, jacobian_age, abs, rel);
+    }
+    else if (splitnewton::Options::getInstance().hasFlag("-use_gauss_seidel"))
+    {
+        spdlog::info("Using Block-Gauss-Seidel Newton solver");
+        std::tie(xf_split, step_split, iter, status) = gauss_seidel_block_newton(
+            df, J, x0, locs, maxiter, npts, sparse, dt0, dtmax, bounds, jacobian_age, abs, rel);
+    }
+    else
+    {
+        spdlog::info("Using recursive Split-Newton solver");
+        std::tie(xf_split, step_split, iter, status) = split_newton_recursive(
+            df, J, x0, locs, maxiter, npts, sparse, dt0, dtmax, bounds, jacobian_age, abs, rel);
+    }
 
     // 7. Unshuffle result back to interleaved
     return {sh.unshuffle(xf_split), sh.unshuffle(step_split), iter, status};
