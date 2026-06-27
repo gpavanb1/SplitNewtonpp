@@ -49,7 +49,7 @@ inline Vector attach(const Vector& x, const Vector& y)
  */
 inline std::tuple<Vector, Vector, int, int> split_newton_recursive(
     Gradient df, Jacobian J, const Vector& x0, const std::vector<int>& locs, int maxiter = std::numeric_limits<int>::max(), int npts = 1,
-    bool sparse = false, double dt0 = 0.0, double dtmax = 1.0,
+    bool sparse = true, double dt0 = 0.0, double dtmax = 1.0,
     const Bounds& bounds = std::nullopt, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
 {
     if (dt0 < 0 || dtmax < 0)
@@ -82,7 +82,7 @@ inline std::tuple<Vector, Vector, int, int> split_newton_recursive(
 
     auto Ja = [&](const Vector& xa_local)
     {
-        Matrix Ja_matrix = J(attach(xa_local, xb)).block(0, 0, loc, loc);
+        Eigen::SparseMatrix<double> Ja_matrix = J(attach(xa_local, xb)).block(0, 0, loc, loc);
         return Ja_matrix;
     };
 
@@ -94,7 +94,7 @@ inline std::tuple<Vector, Vector, int, int> split_newton_recursive(
 
     auto Jb = [&](const Vector& xb_local)
     {
-        Matrix Jb_matrix = J(attach(xa, xb_local)).block(loc, loc, x0.size() - loc, x0.size() - loc);
+        Eigen::SparseMatrix<double> Jb_matrix = J(attach(xa, xb_local)).block(loc, loc, x0.size() - loc, x0.size() - loc);
         return Jb_matrix;
     };
 
@@ -190,7 +190,7 @@ inline std::tuple<Vector, Vector, int, int> split_newton_recursive(
 inline std::tuple<Vector, Vector, int, int> split_newton(
     Gradient df_interleaved, Jacobian J_interleaved, const Vector& x0_interleaved,
     const std::vector<int>& split_locs_components, int maxiter = std::numeric_limits<int>::max(), int npts = 1,
-    bool sparse = false, double dt0 = 0.0, double dtmax = 1.0,
+    bool sparse = true, double dt0 = 0.0, double dtmax = 1.0,
     const Bounds& bounds_interleaved = std::nullopt, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
 {
     if (split_locs_components.empty())
@@ -211,11 +211,11 @@ inline std::tuple<Vector, Vector, int, int> split_newton(
         return sh.shuffle(df_interleaved(sh.unshuffle(u_split)));
     };
 
-    Jacobian J = [&](const Vector& u_split) -> Matrix
+    Jacobian J = [&](const Vector& u_split) -> Eigen::SparseMatrix<double>
     {
         // Matrix shuffling is expensive, but necessary for block iteration if starting from interleaved
         // Note: Simulation layer now builds interleaved Jacobians faster.
-        return Matrix(sh.shuffle_matrix(J_interleaved(sh.unshuffle(u_split)).sparseView()));
+        return sh.shuffle_matrix(J_interleaved(sh.unshuffle(u_split)));
     };
 
     // 4. Shuffle bounds

@@ -21,7 +21,7 @@ namespace splitnewton {
 inline std::tuple<Vector, Vector, int, int> jacobi_block_newton(
     Gradient df, Jacobian J, const Vector& x0, const std::vector<int>& locs, 
     int maxiter = std::numeric_limits<int>::max(), int npts = 1,
-    bool sparse = false, double dt0 = 0.0, double dtmax = 1.0,
+    bool sparse = true, double dt0 = 0.0, double dtmax = 1.0,
     const Bounds& bounds = std::nullopt, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
 {
     if (dt0 < 0 || dtmax < 0)
@@ -60,7 +60,7 @@ inline std::tuple<Vector, Vector, int, int> jacobi_block_newton(
                 return df(x_temp).segment(start, size).eval();
             };
 
-            auto Ja = [&](const Vector& xa_local)
+            auto Ja = [&](const Vector& xa_local) -> Eigen::SparseMatrix<double>
             {
                 Vector x_temp = x;
                 x_temp.segment(start, size) = xa_local;

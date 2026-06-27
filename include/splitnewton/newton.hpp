@@ -84,48 +84,35 @@ inline Vector project_onto_bounds(const Vector& x, const Bounds& bounds)
     return x_proj;
 }
 
-// Helper function: Solve the linear system using either a dense or sparse approach.
+// Helper function: Solve the linear system using a sparse approach.
 // The function returns a tuple with the Newton step (already negated) and the norm of the residual.
-inline std::tuple<Vector, int> sparse_linear_solve(const Eigen::SparseMatrix<double>& jac, const Vector& dfx)
+inline std::tuple<Vector, int> sparse_linear_solve(Eigen::SparseLU<Eigen::SparseMatrix<double>>& solver, const Eigen::SparseMatrix<double>& jac, const Vector& b, bool analyze = true)
 {
     double status = 0;
-    Vector s(dfx.size());
+    Vector s(b.size());
 
-    // Compute diagonal scaling (Jacobi preconditioning)
-    Eigen::VectorXd scale(jac.rows());
-    for (int i = 0; i < jac.rows(); ++i)
-    {
-        double diag = jac.coeff(i, i);
-        scale(i) = (std::abs(diag) < 1e-12) ? 1.0 : 1.0 / diag;
-    }
-    // Scale the Jacobian and the residual vector
-    Eigen::SparseMatrix<double> sp_jac_scaled = scale.asDiagonal() * jac;
-    Eigen::VectorXd dfx_scaled = dfx.cwiseProduct(scale);
     // Solve the system using SparseLU
-    Eigen::SparseLU<Eigen::SparseMatrix<double>> sparse_solver;
-    sparse_solver.compute(sp_jac_scaled);
-    if (sparse_solver.info() != Eigen::Success)
+    if (analyze)
+    {
+        solver.analyzePattern(jac);
+    }
+    solver.factorize(jac);
+
+    if (solver.info() != Eigen::Success)
     {
         spdlog::error("SparseLU failed to factorize");
         status = -3;
         return {-s, status};
     }
-    Eigen::VectorXd s_scaled = sparse_solver.solve(dfx_scaled);
-    if (sparse_solver.info() != Eigen::Success)
+    Eigen::VectorXd sol = solver.solve(b);
+    if (solver.info() != Eigen::Success)
     {
         spdlog::error("SparseLU failed to solve");
         status = -4;
         return {-s, status};
     }
-    s = s_scaled;
+    s = sol;
     status = 1;
-    return {-s, status};
-}
-
-inline std::tuple<Vector, int> dense_linear_solve(const Matrix& jac, const Vector& dfx)
-{
-    double status = 1;
-    Vector s = jac.colPivHouseholderQr().solve(dfx);
     return {-s, status};
 }
 
@@ -167,7 +154,7 @@ inline double compute_bounds_scaling(const Vector& x, const Vector& s, const Bou
     return f_bound;
 }
 
-inline std::tuple<Vector, Vector, int> damp_step(const Matrix& jac, Gradient df, const Vector& x, const Vector& s, const Bounds& bounds, int npts = 1, bool sparse = true, double abs = 1e-5, double rel = 1e-5, int NDAMP = 7, double damp_fac = std::sqrt(2.0))
+inline std::tuple<Vector, Vector, int> damp_step(Eigen::SparseLU<Eigen::SparseMatrix<double>>& solver, const Eigen::SparseMatrix<double>& jac, const Eigen::SparseMatrix<double>& jac_scaled, const Eigen::VectorXd& scale, Gradient df, const Vector& x, const Vector& s, const Bounds& bounds, int npts = 1, bool sparse = true, double abs = 1e-5, double rel = 1e-5, int NDAMP = 7, double damp_fac = std::sqrt(2.0))
 {
     Vector x1, step1;
     int status = 0;
@@ -196,16 +183,8 @@ inline std::tuple<Vector, Vector, int> damp_step(const Matrix& jac, Gradient df,
         x1 = x + ff * s;
 
         // Solve damped step
-        if (sparse)
-        {
-            Eigen::SparseMatrix<double> sp_jac = jac.sparseView();
-            sp_jac.makeCompressed();
-            std::tie(step1, status) = sparse_linear_solve(sp_jac, df(x1));
-        }
-        else
-        {
-            std::tie(step1, status) = dense_linear_solve(jac, df(x1));
-        }
+        std::tie(step1, status) = sparse_linear_solve(solver, jac_scaled, df(x1).cwiseProduct(scale), false);
+
         // Exit if the linear solve failed
         if (status != 1)
             return {x1, step1, status};
@@ -251,7 +230,7 @@ inline std::tuple<Vector, Vector, int> damp_step(const Matrix& jac, Gradient df,
 // Newton Method
 inline std::tuple<Vector, Vector, int, int> newton(
     Gradient df, Jacobian J, Vector x0, int maxiter = std::numeric_limits<int>::max(), int npts = 1,
-    bool sparse = false, double dt0 = 0.0, double dtmax = 1.0,
+    bool sparse = true, double dt0 = 0.0, double dtmax = 1.0,
     const Bounds& bounds = std::nullopt, int jacobian_age = 5, double abs = 1e-5, double rel = 1e-6)
 {
     /**
@@ -267,7 +246,7 @@ inline std::tuple<Vector, Vector, int, int> newton(
      * @param maxiter The maximum number of iterations (default is
      *        `std::numeric_limits<int>::max()`).
      * @param npts Number of points in the vector (used for multi-variate problems - default is `1`).
-     * @param sparse Whether to use sparse matrices for the Jacobian (default is `false`).
+     * @param sparse Whether to use sparse matrices for the Jacobian (default is `true`).
      * @param dt0 Initial step size (default is `0.0`).
      * @param dtmax Maximum allowable step size (default is `1.0`).
      * @param bounds Optional bounds for the solution, represented by a `Bounds`
@@ -323,11 +302,15 @@ inline std::tuple<Vector, Vector, int, int> newton(
     // Evaluate f0
     double f0 = df(x0).cwiseAbs().maxCoeff();
 
-    Matrix jac;  // Store the Jacobian matrix
+    Eigen::SparseMatrix<double> jac;  // Store the Jacobian matrix
+    Eigen::SparseMatrix<double> jac_scaled;
+    Eigen::VectorXd scale;
+    Eigen::SparseLU<Eigen::SparseMatrix<double>> solver;
     double fn;
 
     while (1)
     {
+        bool analyze = false;
         // Update Jacobian and sparse solver only as needed
         if (jacobian_age == 1 || iter % jacobian_age == 1)
         {
@@ -335,19 +318,24 @@ inline std::tuple<Vector, Vector, int, int> newton(
             jac = J(x);
             if (dt != 0)
             {
-                jac += (1.0 / dt) * Eigen::MatrixXd::Identity(x.size(), x.size());
+                Eigen::SparseMatrix<double> id(x.size(), x.size());
+                id.setIdentity();
+                jac += (1.0 / dt) * id;
             }
+
+            // Compute scaling (Jacobi preconditioning)
+            scale.resize(jac.rows());
+            for (int i = 0; i < jac.rows(); ++i)
+            {
+                double diag = jac.coeff(i, i);
+                scale(i) = (std::abs(diag) < 1e-12) ? 1.0 : 1.0 / diag;
+            }
+            jac_scaled = scale.asDiagonal() * jac;
+            analyze = true;
         }
 
         // Compute the initial step
-        if (sparse)
-        {
-            Eigen::SparseMatrix<double> sp_jac = jac.sparseView();
-            sp_jac.makeCompressed();
-            std::tie(step0, status) = sparse_linear_solve(sp_jac, df(x));
-        }
-        else
-            std::tie(step0, status) = dense_linear_solve(jac, df(x));
+        std::tie(step0, status) = sparse_linear_solve(solver, jac_scaled, df(x).cwiseProduct(scale), analyze);
         if (status != 1)
         {
             step = step0;
@@ -355,7 +343,7 @@ inline std::tuple<Vector, Vector, int, int> newton(
         }
 
         // Damped Newton step
-        std::tie(x1, step1, status) = damp_step(jac, df, x, step0, bounds, npts, sparse, abs, rel);
+        std::tie(x1, step1, status) = damp_step(solver, jac, jac_scaled, scale, df, x, step0, bounds, npts, sparse, abs, rel);
         if (status < 0)
         {
             x = x1;

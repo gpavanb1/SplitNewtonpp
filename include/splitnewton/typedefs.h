@@ -2,6 +2,7 @@
 #define TYPDEFS_H
 
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <functional>
 #include <optional>
 
@@ -10,7 +11,7 @@ using Matrix = Eigen::MatrixXd;
 
 using Func = std::function<Vector(const Vector &)>;
 using Gradient = std::function<Vector(const Vector &)>;
-using Jacobian = std::function<Matrix(const Vector &)>;
+using Jacobian = std::function<Eigen::SparseMatrix<double>(const Vector &)>;
 
 using FunctionSet = std::tuple<Func, Gradient, Jacobian>;
 
